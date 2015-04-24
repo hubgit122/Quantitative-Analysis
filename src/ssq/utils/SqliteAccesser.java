@@ -1,0 +1,305 @@
+package ssq.utils;
+
+import java.io.File;
+import java.io.IOException;
+import java.sql.Connection;
+import java.sql.Date;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+public class SqliteAccesser
+{
+    static
+    {
+        try
+        {
+            Class.forName("org.sqlite.JDBC"); //#ifdef Java
+        }
+        catch (ClassNotFoundException e)
+        {
+            e.printStackTrace();
+        }
+    }
+
+    private Connection connection;
+    private String     dbName;
+
+    public SqliteAccesser(String dbName)
+    {
+        if (dbName.matches("[0-9a-zA-z_]+"))
+        {
+            this.dbName = dbName;
+        }
+        else
+        {
+            this.dbName = "db";
+        }
+
+        DBPath = DirUtils.getDataBaseRoot() + File.separator + dbName + ".db";
+        JDBCPath =
+                "jdbc:sqlite:" + //#ifdef Java
+                        DBPath;
+        try
+        {
+            connection = DriverManager.getConnection(getJDBCPath());
+        }
+        catch (SQLException e)
+        {
+            e.printStackTrace();
+        }
+    }
+
+    private String JDBCPath;
+    private String DBPath;
+
+    public String getDBPath()
+    {
+        return DBPath;
+    }
+
+    public String getJDBCPath()
+    {
+        return JDBCPath;
+    }
+
+    /**
+     * 如果指定DB不存在, 则用指定的sql语句创建DB和Table
+     */
+    public void checkDatabase(String sql, String version)
+    {
+        if (version == null)
+        {
+            version = "1.0";
+        }
+
+        if (new File(getDBPath()).exists())
+        {
+            updateDatabase(dbName);
+        }
+        
+        try
+        {
+            new File(getDBPath()).createNewFile();
+        }
+        catch (IOException e)
+        {
+        }
+        
+        try
+        {
+            update("create table version(version varchar(100))", null);
+            update("insert into version values(?)", new Object[] { version });
+        }
+        catch (Exception e)
+        {
+        }
+        
+        try
+        {
+            update(sql, null);
+        }
+        catch (Exception e)
+        {
+        }
+    }
+
+    /**
+     * 对数据库有更新要求时, 应该继承此类, 覆盖此方法. 在数据库里判断version域
+     *
+     * @param path
+     */
+    public void updateDatabase(String path)
+    {
+    }
+
+    /**
+     * 获得结果map的列表
+     *
+     * @param sql
+     *            sql语句
+     * @param args
+     *            参数列表
+     * @param keys
+     *            取值的key
+     * @return List
+     * @throws Exception
+     */
+    public List<Map<String, Object>> query(String sql, Object[] args, String[] keys) throws Exception
+    {
+        List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
+        if (null == keys || keys.length == 0)
+        {
+            return list;
+        }
+
+        Map<String, Object> map = queryWithStatement(sql, args);
+        Statement statement = (Statement) map.get("statement");
+        ResultSet resultSet = (ResultSet) map.get("resultSet");
+        while (resultSet.next())
+        {
+            map = new HashMap<String, Object>();
+            for (int i = 0; i < keys.length; i++)
+            {
+                map.put(keys[i], resultSet.getString(keys[i]));
+            }
+            list.add(map);
+        }
+        close(statement, resultSet);
+        return list;
+    }
+
+    /**
+     * 执行sql返回statement和resultSet
+     *
+     * @param connection
+     *            连接
+     * @param sql
+     *            sql语句
+     * @param args
+     *            参数列表
+     * @return Map
+     * @throws Exception
+     */
+    public ResultSet query(String sql, Object[] args) throws Exception
+    {
+        Statement statement = null;
+        ResultSet resultSet = null;
+        if (null != args && args.length > 0)
+        {
+            statement = getPrepared(sql, args);
+            resultSet = ((PreparedStatement) statement).executeQuery();
+        }
+        else
+        {
+            statement = connection.createStatement();
+            resultSet = statement.executeQuery(sql);
+        }
+        return resultSet;
+    }
+
+    /**
+     * 执行sql返回statement和resultSet
+     *
+     * @param sql
+     *            sql语句
+     * @param args
+     *            参数列表
+     * @return Map
+     * @throws Exception
+     */
+    public Map<String, Object> queryWithStatement(String sql, Object[] args) throws Exception
+    {
+        Map<String, Object> map = new HashMap<String, Object>();
+        Statement statement = null;
+        ResultSet resultSet = null;
+        if (null != args && args.length > 0)
+        {
+            statement = getPrepared(sql, args);
+            resultSet = ((PreparedStatement) statement).executeQuery();
+        }
+        else
+        {
+            statement = connection.createStatement();
+            resultSet = statement.executeQuery(sql);
+        }
+        map.put("statement", statement);
+        map.put("resultSet", resultSet);
+        return map;
+    }
+
+    /**
+     * 操作数据库(增删改)
+     *
+     * @param sqls
+     *            sql语句序列, 用;隔开
+     * @param args
+     *            参数列表
+     * @return int 受影响的数据行数
+     * @throws Exception
+     */
+    public int update(String sqls, Object[] args) throws Exception
+    {
+        int result = 0;
+        for (String sql : sqls.split(";"))
+        {
+            PreparedStatement prepared = getPrepared(sql, args);
+            result += prepared.executeUpdate();
+            close(prepared, null);
+        }
+        return result;
+    }
+
+    /**
+     * 获得预编译语句
+     *
+     * @param connection
+     *            数据库连接
+     * @param sql
+     *            sql语句
+     * @param args
+     *            参数列表
+     * @return PreparedStatement
+     * @throws Exception
+     */
+    private PreparedStatement getPrepared(String sql, Object[] args) throws Exception
+    {
+        PreparedStatement prepared = connection.prepareStatement(sql);
+        if (null != args && args.length > 0)
+        {
+            for (int i = 0; i < args.length; i++)
+            {
+                if (args[i] instanceof Integer)
+                {
+                    prepared.setInt(i + 1, (Integer) args[i]);
+                }
+                else if (args[i] instanceof String)
+                {
+                    prepared.setString(i + 1, (String) args[i]);
+                }
+                else if (args[i] instanceof Date)
+                {
+                    prepared.setDate(i + 1, (Date) args[i]);
+                }
+                else if (args[i] instanceof Long)
+                {
+                    prepared.setLong(i + 1, (Long) args[i]);
+                }
+                else
+                {
+                    prepared.setString(i + 1, null == args[i] ? "" : (String) args[i]);
+                }
+            }
+        }
+        return prepared;
+    }
+
+    /**
+     * 关闭连接
+     *
+     * @param statement
+     *            预编译语句
+     * @param resultSet
+     *            结果集
+     * @throws Exception
+     */
+    public void close(Statement statement, ResultSet resultSet) throws Exception
+    {
+        if (null != resultSet)
+        {
+            resultSet.close();
+            resultSet = null;
+        }
+        if (null != statement)
+        {
+            statement.close();
+            statement = null;
+        }
+    }
+}
