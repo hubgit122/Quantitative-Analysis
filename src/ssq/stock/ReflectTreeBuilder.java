@@ -8,6 +8,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Vector;
 
+import org.java_websocket.framing.Framedata.Opcode;
 import org.junit.Test;
 
 import fri.patterns.interpreter.parsergenerator.semantics.ReflectSemantic;
@@ -28,139 +29,233 @@ public class ReflectTreeBuilder extends ReflectSemantic
         //            System.out.println(node);
         //        }
         for (String string : new String[] {
-                "min(250...1) < min(750...251) && max(5..1) > max(300...6) && max(250..1)/min(250...1) <= 1.5"
+                "min(250 ->1) < min(750 -> 251) && max(5 -> 1) > max(300 -> 6)",
+                "min(250 ->1) < min(750 -> 251) && max(5 -> 1) > max(300 -> 6) && max(250 -> 1)/min(250 -> 1) <= 1.5"
         })
         {
             System.out.println(string);
-            ssq.stock.ReflectTreeBuilder.Node node = parser.getRoot(string);
+            Rules node = parser.getRoot(string);
             System.out.println(node);
         }
     }
-    
+
     public Object rules(Object rule)
     {
         Rules result = new Rules();
         result.add((Rule) rule);
         return result;
     }
-    
+
     public Object rules(Object rules, Object and, Object rule)
     {
-        return ((Rules) rules).add((Rule) rule);
+        ((Rules) rules).add((Rule) rule);
+        return rules;
     }
-    
+
     public Object rule(Object ruleTerm)
     {
         Rule result = new Rule();
         result.add((RuleTerm) ruleTerm);
         return result;
     }
-    
+
     public Object rule(Object rule, Object and, Object ruleTerm)
     {
-        return ((Rule) rule).add((RuleTerm) ruleTerm);
+        ((Rule) rule).add((RuleTerm) ruleTerm);
+        return rule;
     }
-
-    public Object ruleterm(Object lexpr, Object inequ, Object rexpr)
+    
+    public Object ruleterm(Object lexpr, Object inequ, Object rexpr) throws Exception
     {
         RuleTerm result = new RuleTerm();
-        result.lexprString = (String) lexpr;
-        result.rexprString = (String) rexpr;
-        result.c = (Inequality) inequ;
+        result.lexpr = (Expression) lexpr;
+        result.rexpr = (Expression) rexpr;
+        result.c = Inequality.myValueOf((String) inequ);
+
         return result;
     }
 
-    @SuppressWarnings("unchecked")
-    public Object S_EXPRESSION(Object exprList)
-    {
-        return exprList;
-    }
-    
     public Object EXPRESSION(Object term)
     {
         return term;
     }
-    
-    public Object EXPRESSION(Object l, Object op, Object r)
+
+    public Object EXPRESSION(Object l, Object op, Object r) throws Exception
     {
-        return (String) l + (String) op + (String) r;
+        BiExpression biExpression = new BiExpression();
+        biExpression.lExpression = (Expression) l;
+        biExpression.rExpression = (Expression) r;
+        biExpression.operator = BinaryOperator.myValueOf((String) op);
+        
+        return biExpression;
     }
-    
+
     public Object TERM(Object term)
     {
         return term;
     }
-    
-    public Object TERM(Object l, Object op, Object r)
+
+    public Object TERM(Object l, Object op, Object r) throws Exception
     {
-        return (String) l + (String) op + (String) r;
+        BiExpression biExpression = new BiExpression();
+        biExpression.lExpression = (Expression) l;
+        biExpression.rExpression = (Expression) r;
+        biExpression.operator = BinaryOperator.myValueOf((String) op);
+        
+        return biExpression;
     }
-    
+
     public Object FACTOR(Object f)
     {
-        return f;
+        Val result = new Val();
+        result.val = Float.valueOf((String) f);
+
+        return result;
+    }
+
+    public Object args(Object lp, Object le, Object eli, Object re, Object rp)
+    {
+        Vector<Expression> expressions = new Vector<>();
+        
+        expressions.add((Expression) le);
+        expressions.add((Expression) re);
+        
+        return expressions;
     }
     
     public Object FACTOR(Object f, Object s)
     {
-        Vector<Integer> testIntegers = new Vector<>();
-
         if (!f.equals("-")) //是一个函数
         {
-
+            Val val = new Val();
+            val.isFloat = false;
+            val.func = (String) f;
+            
+            val.args = (List<Expression>) s;
+            
+            return val;
         }
-        return (String) f + (String) s;
+        else
+        {
+            BiExpression biExpression = new BiExpression();
+            Val val = new Val();
+            val.val = 0;
+            
+            biExpression.lExpression = val;
+            biExpression.rExpression = (Expression) s;
+            biExpression.operator = BinaryOperator.SUB;
+
+            return biExpression;
+        }
+
     }
-    
-    public Object FACTOR(Object f, Object s, Object t)
+
+    public Object FACTOR(Object l, Object op, Object r) throws Exception
     {
-        return (String) f + (String) s + (String) t;
+        BiExpression biExpression = new BiExpression();
+        biExpression.lExpression = (Expression) l;
+        biExpression.rExpression = (Expression) r;
+        biExpression.operator = BinaryOperator.myValueOf((String) op);
+        
+        return biExpression;
+    }
+
+    public static class Rules extends LinkedList<Rule>
+    {
     }
     
-    public static class Node
+    public static class Rule extends LinkedList<RuleTerm>
     {
         
     }
     
-    public static class Rules extends LinkedList<Rule>
+    public static interface Expression
     {
-        private static final long serialVersionUID = -7855930076486711598L;
-        LinkedList<String>        assertEquals     = new LinkedList<String>();
+
     }
 
-    public static class Rule extends LinkedList<RuleTerm>
+    public static class BiExpression implements Expression
     {
-
+        BinaryOperator operator;
+        Expression     lExpression, rExpression;
     }
     
-    public enum Func
+    public static class UniExpression implements Expression
     {
-        MIN, MAX
+        
+    }
+    
+    public static class Val implements Expression
+    {
+        boolean          isFloat = true;
+        float            val;
+        
+        String           func;
+        List<Expression> args;
     }
     
     public static class RuleTerm
     {
-        String     lexprString, rexprString;
+        Expression lexpr, rexpr;
         Inequality c;
     }
-    
-    public enum Inequality
+
+    public enum BinaryOperator
     {
-        L("<"), LE("<="), E("=="), GE(">="), G(">");
+        ADD("+"), SUB("-"), MUL("*"), DIV("/");
         
         private String nameString;
-        
-        Inequality(String name)
+
+        BinaryOperator(String name)
         {
             nameString = name;
         }
-        
+
         @Override
         public String toString()
         {
             return nameString;
         }
         
+        public static BinaryOperator myValueOf(String s) throws Exception
+        {
+            switch (s.charAt(0))
+            {
+                case '+':
+                    return ADD;
+
+                case '-':
+                    return SUB;
+
+                case '*':
+                    return MUL;
+
+                case '/':
+                    return DIV;
+
+                default:
+                    throw new Exception("暂不支持的运算符: " + s);
+            }
+        }
+    }
+
+    public enum Inequality
+    {
+        L("<"), LE("<="), E("=="), GE(">="), G(">");
+
+        private String nameString;
+
+        Inequality(String name)
+        {
+            nameString = name;
+        }
+
+        @Override
+        public String toString()
+        {
+            return nameString;
+        }
+
         public static Inequality myValueOf(String s) throws Exception
         {
             switch (s)
@@ -168,18 +263,18 @@ public class ReflectTreeBuilder extends ReflectSemantic
                 case "+=":
                 case ">=":
                     return GE;
-                    
+
                 case "-=":
                 case "<=":
                     return LE;
-                    
+
                 case "==":
                     return E;
-                    
+
                 case ">":
                 case "+":
                     return G;
-                    
+
                 case "<":
                 case "-":
                     return L;

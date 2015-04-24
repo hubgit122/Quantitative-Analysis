@@ -7,13 +7,18 @@ import java.util.Scanner;
 
 import org.junit.Test;
 
+import ssq.stock.ReflectTreeBuilder.Rules;
 import ssq.utils.DirUtils;
 import ssq.utils.FileUtils;
+import fri.patterns.interpreter.parsergenerator.Lexer;
 import fri.patterns.interpreter.parsergenerator.Parser;
+import fri.patterns.interpreter.parsergenerator.ParserTables;
 import fri.patterns.interpreter.parsergenerator.builder.SerializedParser;
+import fri.patterns.interpreter.parsergenerator.parsertables.LALRParserTables;
 import fri.patterns.interpreter.parsergenerator.semantics.PrintSemantic;
 import fri.patterns.interpreter.parsergenerator.semantics.TreeBuilderSemantic;
 import fri.patterns.interpreter.parsergenerator.semantics.TreeBuilderSemantic.Node;
+import fri.patterns.interpreter.parsergenerator.syntax.builder.SyntaxBuilder;
 
 public class RuleParser
 {
@@ -50,14 +55,15 @@ public class RuleParser
     {
         // read the syntax from EBNF file
         parser = new SerializedParser().get(null, FileUtils.openAssetsString("rules.syntax"), "stock");
-        
+
         File dump = new File(DirUtils.getTmpRoot() + "parsers/stock.dump.txt");
         if (!dump.exists())
         {
             parser.getParserTables().dump(new PrintStream(dump));
         }
-        
-        //        SyntaxBuilder builder = new SyntaxBuilder(FileUtils.openAssetsString(".syntax"));
+
+        //
+        //        SyntaxBuilder builder = new SyntaxBuilder(FileUtils.openAssetsString("rules.syntax"));
         //        Lexer lexer = builder.getLexer();
         //        lexer.setDebug(true);
         //        ParserTables tables = new LALRParserTables(builder.getParserSyntax());
@@ -69,7 +75,7 @@ public class RuleParser
         return parser;
     }
     
-    protected ReflectTreeBuilder.Node getRoot(String input)
+    protected Rules getRoot(String input)
     {
         try
         {
@@ -77,7 +83,7 @@ public class RuleParser
             
             if (parser.parse(new ReflectTreeBuilder()))
             {
-                return (ReflectTreeBuilder.Node) parser.getResult();
+                return (Rules) parser.getResult();
             }
             else
             {
