@@ -41,13 +41,11 @@ public class History extends Vector<DateData>
         return new String(result);
     }
     
-    public History(Stock s, int firstDay, int lastDay) throws IOException
+    public History(Stock s, File file, int firstDay, int lastDay) throws IOException
     {
         stock = s;
         
-        File file = new File("X:/光大证券/vipdoc/" + (stock.isShangHai ? "sh/lday/sh" : "sz/lday/sz") + pad(stock.number));//new File(DirUtils.getProjectRoot() + "../光大证券/vipdoc/" + (stock.isShangHai ? "sh/lday/sh" : "sz/lday/sz") + pad(stock.number));
         FileInputStream fin = new FileInputStream(file);
-        //FileInputStream fin = new FileInputStream(file);
 
         long length = file.length();
 
@@ -77,6 +75,7 @@ public class History extends Vector<DateData>
                 throw new IOException("这支股票(" + stock.number + ")没有这么多的交易日期. 可能是因为数据没有下载全吧. 现有的交易日期: " + firstday + " - " + lastday);
             }
         }
+        fin.close();
     }
 
     private static long getNextLong(InputStream in) throws IOException
@@ -95,7 +94,7 @@ public class History extends Vector<DateData>
         return d;
     }
 
-    float func(String method, List<Float> args)
+    public float func(String method, List<Float> args)
     {
         switch (method)
         {

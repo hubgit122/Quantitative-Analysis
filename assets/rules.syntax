@@ -1,7 +1,7 @@
 // 随手写的例子: min(250->1) < min(750->251) && max(5->1) > max(300->6) && max(250->1)/min(250->1) <= 1.5
 // 发现只要支持min和max函数, 不等号, 逻辑连接词, 数字和四则运算, 和一个持续表达式
-
 rules ::= rule | rules "&&" rule;
+
 rule ::= ruleterm | rule "||" ruleterm;
 
 ruleterm ::= EXPRESSION C EXPRESSION ;
@@ -9,13 +9,18 @@ ruleterm ::= EXPRESSION C EXPRESSION ;
 EXPRESSION ::= TERM;
 EXPRESSION ::= EXPRESSION '+' TERM;
 EXPRESSION ::= EXPRESSION '-' TERM;
+
 TERM ::= FACTOR;
 TERM ::= TERM '*' FACTOR;
 TERM ::= TERM '/' FACTOR;
+
+FACTOR ::= `float` | `digits`;
+FACTOR ::= func args ;
 FACTOR ::= '-' FACTOR;
 FACTOR ::= '(' EXPRESSION ')';
-FACTOR ::= func args | `float` | `digits`;
+
 func ::= "max" | "min";
+
 args ::= "(" EXPRESSION "->" EXPRESSION ")";   // 如果不是整形, 自动转化. 
 
 ignored ::= `whitespaces` | `cstylecomment`;

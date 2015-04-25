@@ -16,9 +16,11 @@ import java.io.OutputStreamWriter;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.Vector;
 
 public class FileUtils
 {
@@ -255,16 +257,16 @@ public class FileUtils
         }
     }
     
-    public static Set<String> getListOf(File dirFile, boolean filesNotDirs)//列出目录下所有的文件&文件夹
+    public static LinkedList<File> getListOf(File dirFile, boolean filesNotDirs)//列出目录下所有的文件&文件夹
     {
         File[] files = dirFile.listFiles();
-        Set<String> result = new HashSet<String>();
+        LinkedList<File> result = new LinkedList<File>();
         
         for (File file : files)
         {
             if (file.isDirectory() ^ filesNotDirs)
             {
-                result.add(file.getName());
+                result.add(file);
             }
         }
         

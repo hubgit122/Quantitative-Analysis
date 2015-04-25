@@ -1,19 +1,14 @@
 package ssq.stock;
 
-import java.io.FileNotFoundException;
+import java.io.File;
 import java.io.IOException;
 
 public class Stock
 {
-    boolean isShangHai;
-    int     number;
-    History history;
-    
-    public Stock(boolean sh, int num) throws IOException
-    {
-        this(sh, num, -1, -1);
-    }
-    
+    public boolean isShangHai;
+    public int     number;
+    public History history;
+
     /**
      *
      * @param sh
@@ -24,11 +19,18 @@ public class Stock
      *            参与计算的最今的一个交易日距今的交易日数
      * @throws IOException
      */
-    public Stock(boolean sh, int num, int firstDay, int lastDay) throws IOException
+    public Stock(File file, int firstDay, int lastDay) throws IOException
     {
-        isShangHai = sh;
-        number = num;
-        history = new History(this, firstDay, lastDay);
+        String name = file.getName();
+        isShangHai = name.startsWith("sh");
+        number = Integer.valueOf(name.substring(2, 8), 10);
+        
+        history = new History(this, file, firstDay, lastDay);
+    }
 
+    @Override
+    public String toString()
+    {
+        return (isShangHai ? "sh" : "sz") + number;
     }
 }
