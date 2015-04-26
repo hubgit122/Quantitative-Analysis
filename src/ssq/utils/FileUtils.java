@@ -15,11 +15,8 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.util.Enumeration;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.Map;
 import java.util.Properties;
-import java.util.Set;
 import java.util.Vector;
 
 public class FileUtils
@@ -257,14 +254,15 @@ public class FileUtils
         }
     }
     
-    public static LinkedList<File> getListOf(File dirFile, boolean filesNotDirs)//列出目录下所有的文件&文件夹
+    public static Vector<File> getFilteredListOf(File dirFile, boolean filesNotDirs, String filter)//列出目录下所有的文件&文件夹
     {
         File[] files = dirFile.listFiles();
-        LinkedList<File> result = new LinkedList<File>();
+        Vector<File> result = new Vector<File>();
         
         for (File file : files)
         {
-            if (file.isDirectory() ^ filesNotDirs)
+            if ((file.isDirectory() ^ filesNotDirs) && (filter == null ||
+                    file.getName().matches(filter)))
             {
                 result.add(file);
             }

@@ -8,7 +8,7 @@ public class Stock
     public boolean isShangHai;
     public int     number;
     public History history;
-
+    
     /**
      *
      * @param sh
@@ -24,13 +24,26 @@ public class Stock
         String name = file.getName();
         isShangHai = name.startsWith("sh");
         number = Integer.valueOf(name.substring(2, 8), 10);
-        
+
         history = new History(this, file, firstDay, lastDay);
     }
-
+    
     @Override
     public String toString()
     {
         return (isShangHai ? "sh" : "sz") + number;
+    }
+    
+    public static String pad(int i)
+    {
+        char[] result = new char[6];
+
+        for (int j = 5; j >= 0; j--)
+        {
+            result[j] = (char) ('0' + i % 10);
+            i /= 10;
+        }
+
+        return new String(result);
     }
 }

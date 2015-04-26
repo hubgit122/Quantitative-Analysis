@@ -1,15 +1,12 @@
 package ssq.stock;
 
-import java.io.EOFException;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.List;
 import java.util.Vector;
 
-import ssq.utils.DirUtils;
+import ssq.utils.MathUtils;
 
 /**
  * 存放日线数据, 可以计算日线数据的函数<br>
@@ -23,27 +20,9 @@ public class History extends Vector<DateData>
     
     Stock                     stock;
     
-    String pad(int i)
+    public History(Stock stock, File file, int firstDay, int lastDay) throws IOException
     {
-        char[] result = new char[10];
-
-        for (int j = 5; j >= 0; j--)
-        {
-            result[j] = (char) ('0' + i % 10);
-            i /= 10;
-        }
-        
-        result[6] = '.';
-        result[7] = 'd';
-        result[8] = 'a';
-        result[9] = 'y';
-
-        return new String(result);
-    }
-    
-    public History(Stock s, File file, int firstDay, int lastDay) throws IOException
-    {
-        stock = s;
+        this.stock = stock;
         
         FileInputStream fin = new FileInputStream(file);
 
@@ -53,12 +32,26 @@ public class History extends Vector<DateData>
         {
             fin.skip(length - (firstDay << 5));
         }
+        
+        DateData lastDateData = new DateData(0, 1);
 
         while (lastDay <= 1 || size() <= lastDay - firstDay)
         {
             try
             {
-                add(DateData.getNext(fin));
+                DateData tmp = DateData.getNext(fin, lastDateData.scale);
+                
+                if (tmp.val < MathUtils.round(0.9f * lastDateData.val)) //今天是除权除息日
+                {
+                    float s = getScale(tmp.val, lastDateData.val);
+                    lastDateData = tmp.setScale(s);
+                }
+                else
+                {
+                    lastDateData = tmp;
+                }
+                
+                add(lastDateData);
             }
             catch (IOException e)
             {
@@ -66,32 +59,51 @@ public class History extends Vector<DateData>
                 {
                     return;
                 }
+
                 fin.reset();
-                long firstday = getNextLong(fin);
+                long firstday = MathUtils.getNextLong(fin);
                 fin.reset();
                 fin.skip(length - 8);
-                long lastday = getNextLong(fin);
+                long lastday = MathUtils.getNextLong(fin);
 
                 throw new IOException("这支股票(" + stock.number + ")没有这么多的交易日期. 可能是因为数据没有下载全吧. 现有的交易日期: " + firstday + " - " + lastday);
             }
         }
+        
+        //        fin.reset();
+        //        fin.skip(length - 8);
+        //        long lastday = getNextLong(fin);
+        //        if(DateData.dateToNumber(Calendar.getInstance().getTime())>lastday+1)
+        //        {
+        //            throw new FileNotFoundException("没有更新股票");        // 交易日判断略麻烦
+        //        }
         fin.close();
     }
 
-    private static long getNextLong(InputStream in) throws IOException
+    private boolean withinReach(int f1, int f2)
     {
-        int ch = 0;
-        long d = 0;
-
-        for (int i = 0; i < 64; i += 8)
+        if ((MathUtils.round(f1 * 1.1f) > f2) && ((MathUtils.round(f1 * 0.9f) < f2)))
         {
-            ch = in.read();
-            if (ch < 0)
-                throw new EOFException();
-
-            d += ch << i;
+            return true;
         }
-        return d;
+        return false;
+    }
+
+    private float getScale(int thisDay, int lastDay)
+    {
+        for (float i = 1f; i < 21f; i++)
+        {
+            for (float j = 1f; j < i; j++)
+            {
+                float scale = i / j;
+
+                if (withinReach(MathUtils.round(lastDay / scale), thisDay))
+                {
+                    return scale;
+                }
+            }
+        }
+        throw new ArrayIndexOutOfBoundsException();
     }
 
     public float func(String method, List<Float> args)
@@ -116,7 +128,7 @@ public class History extends Vector<DateData>
 
         for (int i = size - firstDay; i <= size - lastDay; i++)
         {
-            int s = get(i).S;
+            int s = MathUtils.round(get(i).getScaledVal());
             
             if (s > result)
             {
@@ -133,7 +145,7 @@ public class History extends Vector<DateData>
 
         for (int i = size - firstDay; i <= size - lastDay; i++)
         {
-            int s = get(i).S;
+            int s = MathUtils.round(get(i).getScaledVal());
             
             if (s < result)
             {

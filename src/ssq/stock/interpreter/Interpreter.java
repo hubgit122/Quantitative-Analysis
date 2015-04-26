@@ -1,17 +1,13 @@
 package ssq.stock.interpreter;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Scanner;
 import java.util.Vector;
 
 import ssq.stock.Stock;
@@ -27,88 +23,97 @@ import ssq.utils.Pair;
 
 public class Interpreter
 {
-    HashMap<Val, Float>              memory = new HashMap<>();
-    LinkedList<Pair<Integer, Float>> evals  = new LinkedList<>();
+    HashMap<Val, Float>              memory   = new HashMap<>();
+    LinkedList<Pair<Integer, Float>> evals    = new LinkedList<>();
     File                             outFile;
+    int                              maxInfo;
+    float                            minGrade;
+    String                           shFilter = "sh600.*|sh601.*|sh603.*";
+    String                           szFilter = "sz000.*|sz001.*|sz002.*|sz300.*";
     
     public static void main(String[] args) throws Exception
     {
-        LogUtils.logString("选股命令是" + args[0], "功能提示", false);
-        LogUtils.logString("在路径[" + args[1] + "]处放置了光大证券超强版", "功能提示", false);
-        LogUtils.logString("结果输出到: " + args[2], "功能提示", false);
-        
-        new Interpreter(args[2]).run(args[0], args[1]);
-    }
+        LogUtils.logString(args[0], "选股命令", false);
+        LogUtils.logString(args[1], "通达信的安装路径", false);
+        LogUtils.logString(args[2], "结果输出到", false);
+        LogUtils.logString(args[3], "最大保留结果数", false);
+        LogUtils.logString(args[4], "最小保留分数", false);
 
-    public Interpreter(String fout) throws IOException
+        new Interpreter(args[2], Integer.valueOf(args[3]), Float.valueOf(args[4])).run(args[0], args[1]);
+    }
+    
+    public Interpreter(String fout, Integer max, Float min) throws IOException
     {
+        maxInfo = max;
+        minGrade = min / 100;
         outFile = new File(fout);
     }
-
+    
     public void run(String insturction, String root) throws Exception
     {
         RuleParser parser = new RuleParser();
         parser.iniParser();
-        
-        LinkedList<File> files = FileUtils.getListOf(new File(root, "vipdoc/sh/lday/"), true);
-        files.addAll(FileUtils.getListOf(new File(root, "vipdoc/sz/lday/"), true)); //先上海再深圳
 
-        scan(parser.getRoot(insturction), files);
-    }
-    
-    private void scan(Rules AST, LinkedList<File> files)
-    {
+        Vector<File> files = FileUtils.getFilteredListOf(new File(root, "vipdoc/sh/lday/"), true, shFilter);
+        files.addAll(FileUtils.getFilteredListOf(new File(root, "vipdoc/sz/lday/"), true, szFilter)); //先上海再深圳
+        
         LogUtils.logString("开始扫描", "进度信息", false);
-
-        int i = 0;
         
+        int i = 0;
+
         for (File f : files)
         {
-            try
-            {
-                Stock s = new Stock(f, -1, -1);
-
-                if (s.history.size() == 0)
-                {
-                    throw new FileNotFoundException();
-                }
-
-                Pair<Integer, Float> result = new Pair<Integer, Float>((s.number << 1) + (s.isShangHai ? 0 : 1), evaluate(s, AST));
-                evals.add(result);
-                memory.clear();
-            }
-            catch (FileNotFoundException e1)
-            {
-            }
-            catch (Exception e)
-            {
-            }
-
+            scan(parser.getRoot(insturction), f);
+            
             if (++i % 100 == 0) //每扫描1000支可能的股票更新显示
             {
                 LogUtils.logString("扫描总数: " + i + ", 扫描百分比: " + (100.0 * i / files.size()), "进度信息", false);
             }
         }
-
+        
         Collections.sort(evals, new Comparator<Pair<Integer, Float>>()
-                {
+        {
             @Override
             public int compare(Pair<Integer, Float> o1, Pair<Integer, Float> o2)
             {
                 float v1 = o1.getValue(), v2 = o2.getValue();
                 return v1 == v2 ? 0 : v1 > v2 ? -1 : 1;
             }
-                });
-
-        if (evals.size() > 100)
+        });
+        
+        if (evals.size() > maxInfo)
         {
-            evals = (LinkedList<Pair<Integer, Float>>) evals.subList(0, 100);
+            evals = new LinkedList<Pair<Integer, Float>>(evals.subList(0, maxInfo));
         }
         
-        LogUtils.logString("扫描结束", "进度信息", false);
         print(evals);
+        LogUtils.logString("扫描结束, 请去" + outFile + "查看结果", "进度信息", false);
     }
     
+    protected void scan(Rules AST, File f)
+    {
+        try
+        {
+            Stock s = new Stock(f, -1, -1);
+            
+            if (s.history.size() == 0)
+            {
+                throw new Exception("空文件");
+            }
+            
+            Pair<Integer, Float> result = new Pair<Integer, Float>((s.number << 1) + (s.isShangHai ? 0 : 1), evaluate(s, AST));
+            
+            if (result.getValue() > minGrade)
+            {
+                evals.add(result);
+            }
+            memory.clear();
+        }
+        catch (Exception e)
+        {
+        }
+    }
+
     private void print(List<Pair<Integer, Float>> evals)
     {
         FileWriter fileWriter;
@@ -121,22 +126,22 @@ public class Interpreter
             e1.printStackTrace();
             return;
         }
-
+        
         try
         {
             for (Pair<Integer, Float> element : evals)
             {
                 int nn = element.getKey();
                 int num = nn >> 1;
-
-                fileWriter.write((((nn & 1) == 0) ? "上海" : "深圳") + num + " 得分 " + element.getValue() * 100 + "\n");
+                
+                fileWriter.write((((nn & 1) == 0) ? "上海" : "深圳") + Stock.pad(num) + " 得分 " + element.getValue() * 100 + "\n");
             }
         }
         catch (IOException e)
         {
             e.printStackTrace();
         }
-
+        
         try
         {
             fileWriter.close();
@@ -145,46 +150,46 @@ public class Interpreter
         {
         }
     }
-
+    
     private float evaluate(Stock s, Rules AST)
     {
         float result = 1f;
-        
+
         for (Rule rule : AST.rules)
         {
             result *= evaluate(s, rule);
-
+            
             if (result == 0 || !evals.isEmpty() && result < evals.getLast().getValue())
             {
                 break;
             }
         }
-        
+
         return result;
     }
-
+    
     private float evaluate(Stock s, Rule rule)
     {
         float result = 0f;
-        
+
         for (RuleTerm term : rule.terms)
         {
             result = Math.max(result, evaluate(s, term));
-            
+
             if (result == 1f)
             {
                 break;
             }
         }
-        
+
         return result;
     }
-
+    
     private float evaluate(Stock s, RuleTerm term)
     {
         float lExp = evaluate(s, term.lexpr), rExp = evaluate(s, term.rexpr);
         int order = term.inequality.ordinal();
-        
+
         if (order < 2) // < or <=
         {
             return saturate(rExp / lExp);
@@ -197,9 +202,9 @@ public class Interpreter
         {
             return Math.min(rExp / lExp, lExp / rExp);
         }
-
+        
     }
-    
+
     private static float saturate(float f)
     {
         if (f > 1f)
@@ -215,7 +220,7 @@ public class Interpreter
             return f;
         }
     }
-    
+
     private float evaluate(Stock s, Expression expr)
     {
         if (expr instanceof BiExpression)
@@ -223,27 +228,18 @@ public class Interpreter
             BiExpression biExpr = (BiExpression) expr;
             return biExpr.operator.doOp(evaluate(s, biExpr.lExpression), evaluate(s, biExpr.rExpression));
         }
-        //        else if (expr instanceof UniExpression)
-        //        {
-        //            return - evaluate(s, ((UniExpression)expr)....);
-        //        }
         else
         { // Val
             Val val = (Val) expr;
-            
+
             if (val.isFloat)
             {
                 return ((Val) expr).val;
             }
             else
             {
-                //                if (memory.keySet().size() == 5)
-                //                {
-                //                    System.out.println();
-                //                }
-                
                 Float f = memory.get(val);
-
+                
                 if (f != null)
                 {
                     return f;
@@ -251,21 +247,16 @@ public class Interpreter
                 else
                 {
                     Vector<Float> args = new Vector<>();
-                    
+
                     for (Expression e : val.args)
                     {
                         args.add(evaluate(s, e));
                     }
-
+                    
                     float result = s.history.func(val.func, args);
-
-                    //                    if (memory.keySet().size() == 5)
-                    //                    {
-                    //                        System.out.println();
-                    //                    }
-
+                    
                     memory.put(val, result);
-
+                    
                     return result;
                 }
             }

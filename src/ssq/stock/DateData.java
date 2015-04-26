@@ -1,13 +1,16 @@
 package ssq.stock;
 
-import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Date;
 
+import ssq.utils.MathUtils;
+
 public class DateData
 {
-    int G, D, K, S; // 高, 低, 开, 收
+    long  date;
+    int   val;  // 收盘价
+    float scale;
 
     @SuppressWarnings("deprecation")
     public static Date numberToDate(int num)
@@ -21,34 +24,34 @@ public class DateData
         return (date.getYear() * 100 + date.getMonth() + 1) * 100 + date.getDate();
     }
     
-    private static int getNextInt(InputStream in) throws IOException
+    public DateData setScale(float scale)
     {
-        int ch = 0;
-        int d = 0;
-
-        for (int i = 0; i < 32; i += 8)
-        {
-            ch = in.read();
-            if (ch < 0)
-                throw new EOFException();
-
-            d += ch << i;
-        }
-        return d;
+        this.scale = scale;
+        return this;
+    }
+    
+    public DateData(long date, int s)
+    {
+        this(date, s, 1);
     }
 
-    public DateData(int k, int g, int d, int s)
+    public DateData(long date, int s, float scale)
     {
-        K = k;
-        G = g;
-        D = d;
-        S = s;
+        this.scale = scale;
+        this.date = date;
+        val = s;
     }
 
-    public static DateData getNext(InputStream in) throws IOException
+    public int getScaledVal()
     {
-        in.skip(4);
-        DateData result = new DateData(getNextInt(in), getNextInt(in), getNextInt(in), getNextInt(in));
+        return MathUtils.round(val * scale);
+    }
+
+    public static DateData getNext(InputStream in, float scale) throws IOException
+    {
+        long date = MathUtils.getNextInt(in);
+        in.skip(12);
+        DateData result = new DateData(date, MathUtils.getNextInt(in), scale);
         in.skip(12);
         return result;
     }
