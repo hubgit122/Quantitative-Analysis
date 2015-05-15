@@ -4,29 +4,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Vector;
 
-import org.junit.Test;
-
 import fri.patterns.interpreter.parsergenerator.semantics.ReflectSemantic;
 
 public class ReflectTreeBuilder extends ReflectSemantic
 {
-    @Test
-    public void treeBuilderTest()
-            throws Exception
-    {
-        RuleParser parser = new RuleParser();
-        parser.iniParser();
-
-        for (String string : new String[] {
-                "min(250 ->1) < min(750 -> 251) && max(5 -> 1) > max(300 -> 6) && max(250 -> 1)/min(250 -> 1) <= 1.5"
-        })
-        {
-            System.out.println(string);
-            Rules node = parser.getRoot(string);
-            System.out.println(node);
-        }
-    }
-    
     public Object rules(Object rule)
     {
         Rules result = new Rules();
@@ -103,7 +84,7 @@ public class ReflectTreeBuilder extends ReflectSemantic
     
     public Object args(Object lp, Object le, Object eli, Object re, Object rp)
     {
-        Vector<Expression> expressions = new Vector<>();
+        Vector<Expression> expressions = new Vector<Expression>();
 
         expressions.add((Expression) le);
         expressions.add((Expression) re);
@@ -162,7 +143,7 @@ public class ReflectTreeBuilder extends ReflectSemantic
     
     public static class Rules extends Node
     {
-        List<Rule> rules = new LinkedList<>();
+        List<Rule> rules = new LinkedList<Rule>();
         
         boolean add(Rule r)
         {
@@ -177,7 +158,7 @@ public class ReflectTreeBuilder extends ReflectSemantic
 
     public static class Rule extends Node
     {
-        LinkedList<RuleTerm> terms = new LinkedList<>();
+        LinkedList<RuleTerm> terms = new LinkedList<RuleTerm>();
 
         boolean add(RuleTerm t)
         {

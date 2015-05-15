@@ -27,10 +27,10 @@ public class SqliteAccesser
             e.printStackTrace();
         }
     }
-
+    
     private Connection connection;
     private String     dbName;
-
+    
     public SqliteAccesser(String dbName)
     {
         if (dbName.matches("[0-9a-zA-z_]+"))
@@ -41,7 +41,7 @@ public class SqliteAccesser
         {
             this.dbName = "db";
         }
-
+        
         DBPath = DirUtils.getDataBaseRoot() + File.separator + dbName + ".db";
         JDBCPath =
                 "jdbc:sqlite:" + //#ifdef Java
@@ -55,20 +55,20 @@ public class SqliteAccesser
             e.printStackTrace();
         }
     }
-
+    
     private String JDBCPath;
     private String DBPath;
-
+    
     public String getDBPath()
     {
         return DBPath;
     }
-
+    
     public String getJDBCPath()
     {
         return JDBCPath;
     }
-
+    
     /**
      * 如果指定DB不存在, 则用指定的sql语句创建DB和Table
      */
@@ -78,12 +78,12 @@ public class SqliteAccesser
         {
             version = "1.0";
         }
-
+        
         if (new File(getDBPath()).exists())
         {
             updateDatabase(dbName);
         }
-        
+
         try
         {
             new File(getDBPath()).createNewFile();
@@ -91,7 +91,7 @@ public class SqliteAccesser
         catch (IOException e)
         {
         }
-        
+
         try
         {
             update("create table version(version varchar(100))", null);
@@ -100,7 +100,7 @@ public class SqliteAccesser
         catch (Exception e)
         {
         }
-        
+
         try
         {
             update(sql, null);
@@ -109,7 +109,7 @@ public class SqliteAccesser
         {
         }
     }
-
+    
     /**
      * 对数据库有更新要求时, 应该继承此类, 覆盖此方法. 在数据库里判断version域
      *
@@ -118,7 +118,7 @@ public class SqliteAccesser
     public void updateDatabase(String path)
     {
     }
-
+    
     /**
      * 获得结果map的列表
      *
@@ -138,13 +138,13 @@ public class SqliteAccesser
         {
             return list;
         }
-
-        Map<String, Object> map = queryWithStatement(sql, args);
-        Statement statement = (Statement) map.get("statement");
-        ResultSet resultSet = (ResultSet) map.get("resultSet");
+        
+        Object[] result = queryWithStatement(sql, args);
+        Statement statement = (Statement) result[0];
+        ResultSet resultSet = (ResultSet) result[1];
         while (resultSet.next())
         {
-            map = new HashMap<String, Object>();
+            Map<String, Object> map = new HashMap<String, Object>();
             for (int i = 0; i < keys.length; i++)
             {
                 map.put(keys[i], resultSet.getString(keys[i]));
@@ -154,7 +154,7 @@ public class SqliteAccesser
         close(statement, resultSet);
         return list;
     }
-
+    
     /**
      * 执行sql返回statement和resultSet
      *
@@ -183,7 +183,7 @@ public class SqliteAccesser
         }
         return resultSet;
     }
-
+    
     /**
      * 执行sql返回statement和resultSet
      *
@@ -194,9 +194,9 @@ public class SqliteAccesser
      * @return Map
      * @throws Exception
      */
-    public Map<String, Object> queryWithStatement(String sql, Object[] args) throws Exception
+    public Object[] queryWithStatement(String sql, Object[] args) throws Exception
     {
-        Map<String, Object> map = new HashMap<String, Object>();
+        Object[] result = new Object[2];
         Statement statement = null;
         ResultSet resultSet = null;
         if (null != args && args.length > 0)
@@ -209,11 +209,13 @@ public class SqliteAccesser
             statement = connection.createStatement();
             resultSet = statement.executeQuery(sql);
         }
-        map.put("statement", statement);
-        map.put("resultSet", resultSet);
-        return map;
-    }
+        
+        result[0] = statement;
+        result[1] = resultSet;
 
+        return result;
+    }
+    
     /**
      * 操作数据库(增删改)
      *
@@ -235,7 +237,7 @@ public class SqliteAccesser
         }
         return result;
     }
-
+    
     /**
      * 获得预编译语句
      *
@@ -279,7 +281,7 @@ public class SqliteAccesser
         }
         return prepared;
     }
-
+    
     /**
      * 关闭连接
      *
