@@ -4,8 +4,10 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -19,6 +21,7 @@ import ssq.stock.interpreter.ReflectTreeBuilder.Rule;
 import ssq.stock.interpreter.ReflectTreeBuilder.RuleTerm;
 import ssq.stock.interpreter.ReflectTreeBuilder.Rules;
 import ssq.stock.interpreter.ReflectTreeBuilder.Val;
+import ssq.utils.DirUtils;
 import ssq.utils.FileUtils;
 import ssq.utils.LogUtils;
 import ssq.utils.Pair;
@@ -29,6 +32,7 @@ public class Interpreter
     LinkedList<Pair<Integer, Float>> evals    = new LinkedList<>();
     File                             outFile;
     int                              maxInfo;
+    int                              backDays = 0;
     float                            minGrade;
     String                           shFilter = "sh600.*|sh601.*|sh603.*";
     String                           szFilter = "sz000.*|sz001.*|sz002.*|sz300.*";
@@ -39,15 +43,16 @@ public class Interpreter
         LogUtils.logString(args[1], "通达信的安装路径", false);
         LogUtils.logString(args[2], "最大保留结果数", false);
         LogUtils.logString(args[3], "最小保留分数", false);
+        LogUtils.logString(args[4], "回溯天数", false);
 
-        new Interpreter(Integer.valueOf(args[2]), Float.valueOf(args[3])).run(args[0], args[1]);
+        new Interpreter(Integer.valueOf(args[2]), Float.valueOf(args[3]), Integer.valueOf(args[4])).run(args[0], args[1]);
     }
 
-    public Interpreter(Integer max, Float min) throws IOException
+    public Interpreter(Integer max, Float min, Integer days) throws IOException
     {
         maxInfo = max;
         minGrade = min / 100;
-        outFile = new File("result.txt");
+        backDays = days;
     }
 
     public void run(String insturction, String root) throws Exception
@@ -89,9 +94,13 @@ public class Interpreter
             evals = new LinkedList<Pair<Integer, Float>>(evals.subList(0, maxInfo));
         }
 
-        print(evals);
-        GUI.statusText("扫描结束, 请去" + outFile + "查看结果");
-        LogUtils.logString("扫描结束, 请去" + outFile + "查看结果", "进度信息", false);
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy年MM月dd日 HH时mm分ss秒");
+
+        outFile = new File(DirUtils.getXxRoot("assets/query_history"), simpleDateFormat.format(new Date()) + "@" + backDays);
+        
+        print(insturction, evals);
+        GUI.statusText("扫描结束, 请点击按钮查看结果");
+        LogUtils.logString("扫描结束, 请点击按钮查看结果", "进度信息", false);
     }
     
     protected void scan(Rules AST, File f)
@@ -118,20 +127,13 @@ public class Interpreter
         }
     }
     
-    private void print(List<Pair<Integer, Float>> evals)
+    private void print(String insturction, List<Pair<Integer, Float>> evals) throws IOException
     {
-        BufferedWriter fileWriter;
-        try
-        {
-            fileWriter = new BufferedWriter(new FileWriter(outFile));
-        }
-        catch (IOException e1)
-        {
-            e1.printStackTrace();
-            GUI.statusText(e1.getLocalizedMessage());
-            return;
-        }
-
+        BufferedWriter fileWriter = new BufferedWriter(new FileWriter(outFile));
+        
+        fileWriter.write(insturction);
+        fileWriter.write("\r\n");
+        
         try
         {
             for (Pair<Integer, Float> element : evals)
@@ -258,6 +260,8 @@ public class Interpreter
                     {
                         args.add(evaluate(s, e));
                     }
+
+                    args.add((float) backDays);
 
                     float result = s.history.func(val.func, args);
 

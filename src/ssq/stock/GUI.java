@@ -31,9 +31,9 @@ public class GUI extends JFrame
     private static final long   serialVersionUID = 1L;
 
     public static GUI           instance         = null;
-    public JLabel               statusLabel      = new JLabel(READY);                                                                                      ;
-    JLabel[]                    labels           = new JLabel[] { new JLabel("选股公式"), new JLabel("通达信路径"), new JLabel("最大列表长度"), new JLabel("最小接受的分值") };
-    protected TextField[]       textareas        = new TextField[] { new TextField(50), new TextField(50), new TextField(50), new TextField(50) };
+    public JLabel               statusLabel      = new JLabel(READY);                                                                                                         ;
+    JLabel[]                    labels           = new JLabel[] { new JLabel("选股公式"), new JLabel("通达信路径"), new JLabel("最大列表长度"), new JLabel("最小接受的分值"), new JLabel("回溯天数") };
+    protected TextField[]       textareas        = new TextField[] { new TextField(90), new TextField(90), new TextField(90), new TextField(90), new TextField(90) };
     JButton[]                   buttons          = new JButton[] { new JButton("保存设置"), new JButton("恢复默认设置"), new JButton("显示结果"), new JButton("开始选股") };
     String[]                    hints            = new String[] { "保存设置到文件", "恢复成默认设置", "显示最近一次的选股结果", "开始分析" };
 
@@ -99,7 +99,7 @@ public class GUI extends JFrame
 
     private MouseListener[] listeners = new MouseListener[] {
             new MouseAdapter()
-                                      {
+            {
                 @Override
                 public void mouseEntered(MouseEvent e)
                 {
@@ -159,7 +159,7 @@ public class GUI extends JFrame
                 @Override
                 public void mouseClicked(MouseEvent e)
                 {
-                    new TableFrame();
+                    QueryHistory.showHistoryTable();
                 }
 
                 @Override
@@ -200,7 +200,7 @@ public class GUI extends JFrame
                         {
                             try
                             {
-                                Interpreter.main(new String[] { textareas[0].getText(), textareas[1].getText(), textareas[2].getText(), textareas[3].getText() });
+                                Interpreter.main(new String[] { textareas[0].getText(), textareas[1].getText(), textareas[2].getText(), textareas[3].getText(), textareas[4].getText() });
                             }
                             catch (Exception e1)
                             {
@@ -243,6 +243,7 @@ public class GUI extends JFrame
         textareas[1].setText("d:/股票");
         textareas[2].setText(String.valueOf(100));
         textareas[3].setText(String.valueOf(50));
+        textareas[4].setText(String.valueOf(0));
     }
 
     private void deleteListeners()
@@ -272,7 +273,7 @@ public class GUI extends JFrame
         gbc.ipady = 1;
         for (int i = 0; i < labels.length; i++)
         {
-            gbc.gridy = i;
+            gbc.gridy++;
             
             gbc.gridx = 0;
             gbc.gridwidth = 1;
@@ -285,12 +286,11 @@ public class GUI extends JFrame
             gbc.gridwidth = GridBagConstraints.REMAINDER;
             add(textareas[i], gbc);
         }
-
+        
+        gbc.gridy++;
         for (int i = 0; i < buttons.length; i++)
         {
             JButton button = buttons[i];
-
-            gbc.gridy = 4;
             
             gbc.gridx = i;
             gbc.gridwidth = 1;
@@ -301,9 +301,9 @@ public class GUI extends JFrame
             }
             add(button, gbc);
         }
-        
+
+        gbc.gridy++;
         gbc.anchor = GridBagConstraints.WEST;
-        gbc.gridy = 5;
         gbc.gridx = 0;
         gbc.gridwidth = GridBagConstraints.REMAINDER;
         add(statusLabel, gbc);

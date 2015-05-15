@@ -8,12 +8,19 @@ public class DirUtils
     {
         for (String name : new String[] { getProjectRoot(), getWebRoot(), getKeyRoot(), getDataBaseRoot(), getTmpRoot() })
         {
-            File tmp = new File(name);
-            if (!tmp.exists())
-            {
-                tmp.mkdirs();
-            }
+            ensureExistence(name);
         }
+    }
+    
+    public static String ensureExistence(String name)
+    {
+        File tmp = new File(name);
+        if (!tmp.exists())
+        {
+            tmp.mkdirs();
+        }
+
+        return name;
     }
     
     static String projectRoot         = null;
@@ -30,7 +37,7 @@ public class DirUtils
 
     public static String getWritableXxRoot(String name)
     {
-        return getWritableProjectRoot() + name + "/";
+        return ensureExistence(getWritableProjectRoot() + name + "/");
     }
     
     public static String getProjectRoot()

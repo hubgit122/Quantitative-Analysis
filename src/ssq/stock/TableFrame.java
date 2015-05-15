@@ -1,98 +1,137 @@
 package ssq.stock;
 
+import java.awt.Adjustable;
+import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Font;
-import java.awt.GridBagLayout;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.io.BufferedReader;
+import java.awt.event.MouseListener;
 import java.io.File;
-import java.io.FileReader;
+import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.Vector;
 
 import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.ScrollPaneConstants;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableColumn;
 
-public class TableFrame extends JFrame
+import ssq.utils.Pair;
+
+public abstract class TableFrame extends JFrame
 {
     private static final long serialVersionUID = 3146763463910064509L;
     JTable                    table;
-
-    public static void main(String[] args)
-    {
-        TableFrame frame = new TableFrame();
-        
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-    }
+    JLabel                    statusLabel      = new JLabel("列表视图");
+    Font                      yahei            = new Font("YaHei", Font.PLAIN, 18);
+    File                      file;                                                //数据文件
+    JScrollPane               statusPane;
     
+    public void setStatusText(String s)
+    {
+        statusLabel.setText(s);
+    }
+
     public TableFrame()
     {
+        this(null);
+    }
+
+    public TableFrame(File file)
+    {
+        this.file = file;
         initTable();
         initView();
         initListeners();
         show();
     }
-    
-    private void initListeners()
+
+    private int getPreferredWidthForColumn(TableColumn col)
     {
-        table.addMouseListener(new MouseAdapter()
-        {
-            @Override
-            public void mouseClicked(MouseEvent e)
-            {
-                int row = table.convertRowIndexToModel(table.getSelectedRow()),
-                column = table.convertColumnIndexToModel(0);
-                
-                String num = table.getModel().getValueAt(row, column).toString();
-
-                String cmd = "sendkey " + num + " " + GUI.instance.textareas[1].getText();
-
-                try
-                {
-                    Runtime.getRuntime().exec(cmd);
-                }
-                catch (IOException e1)
-                {
-                    GUI.statusText("执行跳转时发生意外: " + e1.getLocalizedMessage());
-                    e1.printStackTrace();
-                }
-            }
-        });
+        int hw = columnHeaderWidth(col); // hw = header width
+        int cw = widestCellInColumn(col); // cw = column width
+        
+        return hw > cw ? hw : cw;
     }
     
+    private int columnHeaderWidth(TableColumn col)
+    {
+        TableCellRenderer renderer = table.getTableHeader().getDefaultRenderer();
+        Component comp = renderer.getTableCellRendererComponent(table, col.getHeaderValue(), false, false, 0, 0);
+        
+        return comp.getPreferredSize().width;
+    }
+    
+    private int widestCellInColumn(TableColumn col)
+    {
+        int c = col.getModelIndex();
+        int width = 0, maxw = 0;
+        
+        for (int r = 0; r < table.getRowCount(); r++)
+        {
+            TableCellRenderer renderer = table.getCellRenderer(r, c);
+            Component comp = renderer.getTableCellRendererComponent(table, table.getValueAt(r, c), false, false, r, c);
+            width = comp.getPreferredSize().width;
+            maxw = width > maxw ? width : maxw;
+        }
+        return maxw;
+    }
+
+    protected void initListeners()
+    {
+        table.addMouseListener(getTableMouseListener());
+    }
+
+    abstract protected MouseListener getTableMouseListener();
+
     private void initView()
     {
-        setLayout(new GridBagLayout());
+        setLayout(new BorderLayout());
         setBackground(Color.WHITE);
-        setResizable(false);
-        add(new JScrollPane(table));
+        add(new JScrollPane(table), BorderLayout.CENTER);
+        table.setFont(yahei);
+        TableColumn column = table.getColumnModel().getColumn(0);
+        column.setPreferredWidth(getPreferredWidthForColumn(column));
+        column = table.getColumnModel().getColumn(1);
+        column.setPreferredWidth(getPreferredWidthForColumn(column));
+        statusLabel.setFont(yahei);
         pack();
+        statusPane = new JScrollPane(statusLabel, ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
+        statusPane.setHorizontalScrollBar(new JScrollBar(Adjustable.HORIZONTAL));
+        add(statusPane, BorderLayout.SOUTH);
+        setResizable(false);
     }
-    
+
     public void initTable()
     {
         try
         {
-            BufferedReader reader = new BufferedReader(new FileReader(new File("result.txt")));
-            Vector<String[]> data = new Vector<>();
-            String[] names = new String[] { "编号", "评分" };
-            
-            for (String line = reader.readLine(); line != null; line = reader.readLine())
+            Pair<Object[][], Object[]> data = toTable();
+
+            DefaultTableModel t = new DefaultTableModel(data.getKey(), data.getValue())
             {
-                data.add(line.split(" "));
-            }
-            reader.close();
+                private static final long serialVersionUID = 1L;
+                
+                @Override
+                public boolean isCellEditable(int row, int column)
+                {
+                    return false;
+                }
+            };
             
-            table = new JTable(data.toArray(new String[][] {}), names);
-            Font yahei = new Font("YaHei", Font.PLAIN, 18);
-            table.setFont(yahei);
+            table = new JTable(t);
         }
+
         catch (Exception e1)
         {
             GUI.statusText(e1.getLocalizedMessage());
             e1.printStackTrace();
         }
     }
+    
+    public abstract Pair<Object[][], Object[]> toTable() throws FileNotFoundException, IOException;
 }

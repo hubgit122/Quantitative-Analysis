@@ -7,7 +7,7 @@ public class Stock
 {
     public boolean isShangHai;
     public int     number;
-    public History history;
+    public StockHistory history;
     
     /**
      *
@@ -25,7 +25,7 @@ public class Stock
         isShangHai = name.startsWith("sh");
         number = Integer.valueOf(name.substring(2, 8), 10);
 
-        history = new History(this, file, firstDay, lastDay);
+        history = new StockHistory(this, file, firstDay, lastDay);
     }
     
     @Override
