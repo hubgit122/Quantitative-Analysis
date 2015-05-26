@@ -27,7 +27,7 @@ public class DebugFrame extends JFrame
     JLabel[]                  labels           = new JLabel[] { new JLabel("股票代码"), new JLabel("回溯天数") };
     TextField[]               textFields       = new TextField[] { new TextField(6), new TextField(6) };
     JButton                   ok               = new JButton("开始分项评分");
-    
+
     public DebugFrame()
     {
         initData();
@@ -35,21 +35,21 @@ public class DebugFrame extends JFrame
         initListeners();
         show();
     }
-
+    
     private void initData()
     {
         fomular = GUI.instance.textFields[0].getText();
         textFields[1].setText(GUI.instance.textFields[4].getText());
     }
-
+    
     private void initView()
     {
         setBackground(Color.WHITE);
         setAlwaysOnTop(true);
         setLayout(new GridBagLayout());
-
-        GridBagConstraints gbc = new GridBagConstraints();
         
+        GridBagConstraints gbc = new GridBagConstraints();
+
         gbc.gridheight = 1;
         gbc.weightx = 0;
         gbc.weighty = 0;
@@ -58,35 +58,35 @@ public class DebugFrame extends JFrame
         gbc.insets = new Insets(1, 1, 1, 1);
         gbc.ipadx = 1;
         gbc.ipady = 1;
-
+        
         for (int i = 0; i < labels.length; i++)
         {
             gbc.gridy++;
-
+            
             gbc.gridx = 0;
             gbc.gridwidth = 1;
             JLabel label = labels[i];
             label.setFont(GUI.yahei);
-            
+
             add(label, gbc);
-            
+
             gbc.gridx = 1;
             gbc.gridwidth = GridBagConstraints.REMAINDER;
             add(textFields[i], gbc);
         }
-
-        gbc.gridy++;
         
+        gbc.gridy++;
+
         gbc.gridx = 0;
         gbc.gridwidth = 2;
         ok.setFont(GUI.yahei);
         gbc.fill = GridBagConstraints.BOTH;
         add(ok, gbc);
-        
+
         pack();
         setResizable(false);
     }
-
+    
     private void initListeners()
     {
         ok.addMouseListener(new MouseAdapter()
@@ -95,43 +95,43 @@ public class DebugFrame extends JFrame
             public void mouseClicked(MouseEvent e)
             {
                 String[] fomulars = fomular.split("\\|\\|");
-
+                
                 for (int i = 0; i < fomulars.length; i++)
                 {
                     final String fomu = fomulars[i];
-
+                    
                     new TableFrame()
                     {
                         private static final long serialVersionUID = 1L;
-
+                        
                         {
                             statusLabel.setText(" 公式: " + fomu);
-
+                            
                             try
                             {
-                                setTitle("股票: " + textFields[0].getText() + "总分: " + String.valueOf(new Interpreter(1, 0.f, Integer.valueOf(textFields[1].getText())).run(fomu, GUI.instance.textFields[1].getText(), "tmp", "s." + textFields[0].getText() + ".*")));
+                                setTitle("股票: " + textFields[0].getText() + "总分: " + String.valueOf(new Interpreter(1, 0.f, Integer.valueOf(textFields[1].getText())).scan(fomu, GUI.instance.textFields[1].getText(), Integer.valueOf(textFields[1].getText()), Integer.valueOf(textFields[0].getText())).getKey() * 100));
                             }
                             catch (Exception e)
                             {
                                 e.printStackTrace();
                             }
                         }
-                        
+
                         @Override
                         public Pair<Object[][], Object[]> toTable() throws IOException
                         {
                             String[] atomFomular = fomu.split("&&");
-
+                            
                             Vector<String[]> data = new Vector<>();
                             String[] names = new String[] { "原子公式", "得分" };
-                            
+
                             for (int j = 0; j < atomFomular.length; j++)
                             {
                                 String string = StringUtils.trim(atomFomular[j]);
-
+                                
                                 try
                                 {
-                                    data.add(new String[] { string, String.valueOf(new Interpreter(1, 0.f, Integer.valueOf(textFields[1].getText())).run(string, GUI.instance.textFields[1].getText(), "tmp", "s." + textFields[0].getText() + ".*")) });
+                                    data.add(new String[] { string, String.valueOf(new Interpreter(1, 0.f, Integer.valueOf(textFields[1].getText())).scan(string, GUI.instance.textFields[1].getText(), Integer.valueOf(textFields[1].getText()), Integer.valueOf(textFields[0].getText())).getKey() * 100) });
                                 }
                                 catch (Exception e)
                                 {
@@ -139,10 +139,10 @@ public class DebugFrame extends JFrame
                                     e.printStackTrace();
                                 }
                             }
-                            
+
                             return new Pair<Object[][], Object[]>(data.toArray(new String[][] {}), names);
                         }
-
+                        
                         @Override
                         protected MouseListener getTableMouseListener()
                         {

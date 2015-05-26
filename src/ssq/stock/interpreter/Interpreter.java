@@ -27,232 +27,210 @@ import ssq.utils.Pair;
 
 public class Interpreter
 {
-    HashMap<Val, Float>              memory   = new HashMap<>();
-    LinkedList<Pair<Integer, Float>> evals    = new LinkedList<Pair<Integer, Float>>()
-                                              {
-                                                  private static final long serialVersionUID = 944050349742239541L;
-                                                  
-                                                  @Override
-                                                  public boolean add(ssq.utils.Pair<Integer, Float> e)
-                                                  {
-                                                      if (this.size() == 0)
-                                                      {
-                                                          addFirst(e);
-                                                      }
-                                                      if (e.getValue() > this.get(0).getValue())
-                                                      {
-                                                          addFirst(e);
-                                                          return true;
-                                                      }
-                                                      
-                                                      for (ListIterator<Pair<Integer, Float>> iterator = evals.listIterator(); iterator.hasNext();)
-                                                      {
-                                                          Pair<Integer, Float> pair = iterator.next();
-                                                          
-                                                          if (e.getValue() > pair.getValue())
-                                                          {
-                                                              iterator.previous();
-                                                              iterator.add(e);
-                                                              return true;
-                                                          }
-                                                      }
-                                                      
-                                                      addLast(e);
-                                                      return true;
-                                                  };
-                                              };
+    HashMap<Val, Float> memory   = new HashMap<>();
     
-    File                             outFile;
-    int                              maxInfo;
-    int                              backDays = 0;
-    float                            minGrade;
+    File                outFile;
+    int                 maxInfo;
+    int                 backDays = 0;
+    float               minGrade;
     
-    //    public static void main(String[] args) throws Exception
-    //    {
-    //        LogUtils.logString(args[0], "选股命令", false);
-    //        LogUtils.logString(args[1], "通达信的安装路径", false);
-    //        LogUtils.logString(args[2], "最大保留结果数", false);
-    //        LogUtils.logString(args[3], "最小保留分数", false);
-    //        LogUtils.logString(args[4], "回溯天数", false);
-    //
-    //        new Interpreter(Integer.valueOf(args[2]), Float.valueOf(args[3]), Integer.valueOf(args[4])).run(args[0], args[1]);
-    //    }
-    
+    static RuleParser   parser   = new RuleParser();
+    static
+    {
+        try
+        {
+            parser.iniParser();
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+    }
+
     public Interpreter(Integer max, Float min, Integer days) throws IOException
     {
         maxInfo = max;
         minGrade = min / 100;
         backDays = days;
     }
-    
-    public float run(String insturction, String root) throws Exception
+
+    public void run(String insturction, String root) throws Exception
     {
-        return run(insturction, root, "assets/query_history", Stock.stockFilter);
+        run(insturction, root, "assets/query_history", Stock.stockFilter);
     }
-    
-    /**
-     *
-     * @param insturction
-     * @param root
-     * @param outputDir
-     * @param filter
-     * @return 如果结果仅有一个, 输出其评分, 否则输出结果个数的相反数
-     * @throws Exception
-     */
-    public float run(String insturction, String root, String outputDir, String filter) throws Exception
+
+    public void run(String insturction, String root, String outputDir, String filter) throws Exception
     {
-        RuleParser parser = new RuleParser();
-        parser.iniParser();
-        
+        evals.clear();
         filter = filter != null ? filter : Stock.stockFilter;
-        
+
         Vector<File> files = FileUtils.getFilteredListOf(new File(root, "vipdoc/sh/lday/"), true, filter);
         files.addAll(FileUtils.getFilteredListOf(new File(root, "vipdoc/sz/lday/"), true, filter)); //先上海再深圳
-        
+
         GUI.statusText("开始分析");
         LogUtils.logString("开始分析", "进度信息", false);
-        
+
         int i = 0;
-        
+
         for (File f : files)
         {
             scan(parser.getRoot(insturction), f);
-            
+
             if (++i % 100 == 0) //每扫描1000支可能的股票更新显示
             {
                 GUI.statusText("扫描总数: " + i + ", 扫描百分比: " + (100.0 * i / files.size()));
                 LogUtils.logString("扫描总数: " + i + ", 扫描百分比: " + (100.0 * i / files.size()), "进度信息", false);
             }
         }
-        
-        //                Collections.sort(evals, new Comparator<Pair<Integer, Float>>()
-        //                        {
-        //                    @Override
-        //                    public int compare(Pair<Integer, Float> o1, Pair<Integer, Float> o2)
-        //                    {
-        //                        float v1 = o1.getValue(), v2 = o2.getValue();
-        //                        return v1 == v2 ? 0 : v1 > v2 ? -1 : 1;
-        //                    }
-        //                        });
-        
+
         if (evals.size() > maxInfo)
         {
             evals = new LinkedList<Pair<Integer, Float>>(evals.subList(0, maxInfo));
         }
-        
+
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy年MM月dd日 HH时mm分ss秒");
-        
+
         outFile = new File(DirUtils.getXxRoot(outputDir), simpleDateFormat.format(new Date()) + "@" + backDays);
-        
+
         print(insturction, evals);
         GUI.statusText("扫描结束, 请点击按钮查看结果");
         LogUtils.logString("扫描结束, 请点击按钮查看结果", "进度信息", false);
-        
-        if (evals.size() == 1)
+    }
+    
+    /**
+     * 求编号为number的股票的原子得分情况
+     *
+     * @param insturction
+     * @param root
+     * @param number
+     * @return
+     */
+    public Pair<Float, Vector<Vector<Float>>> scan(String insturction, String root, int back, int number)
+    {
+        String filter = "s." + number + ".*";
+        this.backDays = back;
+
+        try
         {
-            return evals.get(0).getValue() * 100;
+            return scan(insturction, root, filter).get(0);
         }
-        else
+        catch (Exception e)
         {
-            return -evals.size();
+            e.printStackTrace();
+            return null;
         }
     }
     
-    protected void scan(Rules AST, File f)
+    /**
+     * 求满足filter条件的股票的原子得分情况
+     *
+     * @param insturction
+     * @param root
+     * @param number
+     * @return
+     */
+    //      股票                                   或公式      与公式    原子值
+    public Vector<Pair<Float, Vector<Vector<Float>>>> scan(String insturction, String root, String filter)
+    {
+        evals.clear();
+        Vector<File> files = FileUtils.getFilteredListOf(new File(root, "vipdoc/sh/lday/"), true, filter);
+        files.addAll(FileUtils.getFilteredListOf(new File(root, "vipdoc/sz/lday/"), true, filter)); //先上海再深圳
+        Vector<Pair<Float, Vector<Vector<Float>>>> result = new Vector<>();
+
+        for (File f : files)
+        {
+            result.add(scan(parser.getRoot(insturction), f));
+        }
+
+        return result;
+    }
+
+    /**
+     * 扫描当前文件, 求所代表的股票的原子评分
+     *
+     * @param AST
+     * @param file
+     * @return
+     */
+    protected Pair<Float, Vector<Vector<Float>>> scan(Rules AST, File file)
     {
         try
         {
-            Stock s = new Stock(f, -1, -1);
-            
+            Stock s = new Stock(file, -1, -1);
+
             if (s.history.size() == 0)
             {
                 throw new Exception("空文件");
             }
-            
-            Pair<Integer, Float> result = new Pair<Integer, Float>((s.number << 1) + (s.isShangHai ? 0 : 1), evaluate(s, AST));
-            
-            if (result.getValue() > minGrade)
+
+            Pair<Float, Vector<Vector<Float>>> result = evaluate(s, AST);
+
+            if (result.getKey() > minGrade)
             {
-                evals.add(result);
+                evals.add(new Pair<Integer, Float>(s.number, result.getKey()));
             }
             memory.clear();
+            
+            return result;
         }
         catch (Exception e)
         {
+            return null;
         }
     }
-    
-    private void print(String insturction, List<Pair<Integer, Float>> evals) throws IOException
+
+    /**
+     * 扫描当前股票, 求所代表的股票的原子评分
+     *
+     * @param s
+     * @param AST
+     * @return
+     */
+    private Pair<Float, Vector<Vector<Float>>> evaluate(Stock s, Rules AST)
     {
-        BufferedWriter fileWriter = new BufferedWriter(new FileWriter(outFile));
-        
-        fileWriter.write(insturction);
-        fileWriter.write("\r\n");
-        
-        try
-        {
-            for (Pair<Integer, Float> element : evals)
-            {
-                int nn = element.getKey();
-                int num = nn >> 1;
-                
-                fileWriter.write(Stock.pad(num) + ' ' + element.getValue() * 100 + "\r\n");
-            }
-        }
-        catch (IOException e)
-        {
-            e.printStackTrace();
-            GUI.statusText(e.getLocalizedMessage());
-        }
-        
-        try
-        {
-            fileWriter.close();
-        }
-        catch (IOException e)
-        {
-        }
-    }
-    
-    private float evaluate(Stock s, Rules AST)
-    {
-        float result = 1f;
+        Vector<Vector<Float>> result = new Vector<>();
+        float grade = Float.MIN_VALUE;
         
         for (Rule rule : AST.rules)
         {
-            result *= evaluate(s, rule);
-            
-            if (result == 0 || !evals.isEmpty() && result < evals.getLast().getValue())
+            Pair<Float, Vector<Float>> tmp = evaluate(s, rule);
+            result.add(tmp.getValue());
+            grade = Math.max(grade, tmp.getKey());
+
+            if (grade == 1)
             {
                 break;
             }
         }
         
-        return result;
+        return new Pair<Float, Vector<Vector<Float>>>(grade, result);
     }
-    
-    private float evaluate(Stock s, Rule rule)
+
+    private Pair<Float, Vector<Float>> evaluate(Stock s, Rule rule)
     {
-        float result = 0f;
+        Vector<Float> result = new Vector<>();
+        float grade = 1f;
         
         for (RuleTerm term : rule.terms)
         {
-            result = Math.max(result, evaluate(s, term));
+            float tmp = evaluate(s, term);
+            result.add(tmp);
+            grade *= tmp;
             
-            if (result == 1f)
+            if (grade == 0 || !evals.isEmpty() && grade < evals.getLast().getValue())
             {
                 break;
             }
         }
-        
-        return result;
+
+        return new Pair<Float, Vector<Float>>(grade, result);
     }
-    
+
     private float evaluate(Stock s, RuleTerm term)
     {
         float lExp = evaluate(s, term.lexpr), rExp = evaluate(s, term.rexpr);
         int order = term.inequality.ordinal();
-        
+
         if (order < 2) // < or <=
         {
             return saturate(rExp / lExp);
@@ -265,9 +243,9 @@ public class Interpreter
         {
             return Math.min(rExp / lExp, lExp / rExp);
         }
-        
+
     }
-    
+
     private static float saturate(float f)
     {
         if (f > 1f)
@@ -283,7 +261,7 @@ public class Interpreter
             return f;
         }
     }
-    
+
     private float evaluate(Stock s, Expression expr)
     {
         if (expr instanceof BiExpression)
@@ -294,7 +272,7 @@ public class Interpreter
         else
         { // Val
             Val val = (Val) expr;
-            
+
             if (val.isFloat)
             {
                 return ((Val) expr).val;
@@ -302,7 +280,7 @@ public class Interpreter
             else
             {
                 Float f = memory.get(val);
-                
+
                 if (f != null)
                 {
                     return f;
@@ -310,21 +288,86 @@ public class Interpreter
                 else
                 {
                     Vector<Float> args = new Vector<>();
-                    
+
                     for (Expression e : val.args)
                     {
                         args.add(evaluate(s, e));
                     }
-                    
+
                     args.add((float) backDays);
-                    
+
                     float result = s.history.func(val.func, args);
-                    
+
                     memory.put(val, result);
-                    
+
                     return result;
                 }
             }
         }
     }
+
+    private void print(String insturction, List<Pair<Integer, Float>> evals) throws IOException
+    {
+        BufferedWriter fileWriter = new BufferedWriter(new FileWriter(outFile));
+
+        fileWriter.write(insturction);
+        fileWriter.write("\r\n");
+
+        try
+        {
+            for (Pair<Integer, Float> element : evals)
+            {
+                int num = element.getKey();
+                
+                fileWriter.write(Stock.pad(num) + ' ' + element.getValue() * 100 + "\r\n");
+            }
+        }
+        catch (IOException e)
+        {
+            e.printStackTrace();
+            GUI.statusText(e.getLocalizedMessage());
+        }
+
+        try
+        {
+            fileWriter.close();
+        }
+        catch (IOException e)
+        {
+        }
+    }
+
+    LinkedList<Pair<Integer, Float>> evals = new LinkedList<Pair<Integer, Float>>()
+                                           {
+                                               private static final long serialVersionUID = 944050349742239541L;
+                                               
+                                               @Override
+                                               public boolean add(ssq.utils.Pair<Integer, Float> e)
+                                               {
+                                                   if (this.size() == 0)
+                                                   {
+                                                       addFirst(e);
+                                                   }
+                                                   if (e.getValue() > this.get(0).getValue())
+                                                   {
+                                                       addFirst(e);
+                                                       return true;
+                                                   }
+                                                   
+                                                   for (ListIterator<Pair<Integer, Float>> iterator = evals.listIterator(); iterator.hasNext();)
+                                                   {
+                                                       Pair<Integer, Float> pair = iterator.next();
+                                                       
+                                                       if (e.getValue() > pair.getValue())
+                                                       {
+                                                           iterator.previous();
+                                                           iterator.add(e);
+                                                           return true;
+                                                       }
+                                                   }
+                                                   
+                                                   addLast(e);
+                                                   return true;
+                                               };
+                                           };
 }
