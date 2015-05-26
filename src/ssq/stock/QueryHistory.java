@@ -10,6 +10,9 @@ import java.util.Vector;
 
 import javax.swing.ScrollPaneConstants;
 
+import ssq.stock.gui.GUI;
+import ssq.stock.gui.QueryResultFrame;
+import ssq.stock.gui.TableFrame;
 import ssq.utils.DirUtils;
 import ssq.utils.FileUtils;
 import ssq.utils.Pair;

@@ -5,12 +5,13 @@ import java.io.IOException;
 
 public class Stock
 {
-    public boolean       isShangHai;
-    public int           number;
-    public StockHistory  history;
+    public boolean             isShangHai;
+    public int                 number;
+    public StockHistory        history;
 
-    public static String shFilter = "sh600.*|sh601.*|sh603.*";
-    public static String szFilter = "sz000.*|sz001.*|sz002.*|sz300.*";
+    public static final String shFilter    = "sh600.*|sh601.*|sh603.*";
+    public static final String szFilter    = "sz000.*|sz001.*|sz002.*|sz300.*";
+    public static final String stockFilter = shFilter + "|" + szFilter;
 
     /**
      *

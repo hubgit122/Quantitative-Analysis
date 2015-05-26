@@ -1,2 +1,6 @@
 /bin
 /.settings
+/db
+/选股
+/assets/query_history
+/tmp
