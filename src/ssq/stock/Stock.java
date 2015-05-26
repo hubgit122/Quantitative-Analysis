@@ -5,10 +5,13 @@ import java.io.IOException;
 
 public class Stock
 {
-    public boolean isShangHai;
-    public int     number;
-    public StockHistory history;
-    
+    public boolean       isShangHai;
+    public int           number;
+    public StockHistory  history;
+
+    public static String shFilter = "sh600.*|sh601.*|sh603.*";
+    public static String szFilter = "sz000.*|sz001.*|sz002.*|sz300.*";
+
     /**
      *
      * @param sh
@@ -31,7 +34,7 @@ public class Stock
     @Override
     public String toString()
     {
-        return (isShangHai ? "sh" : "sz") + number;
+        return (isShangHai ? "sh" : "sz") + pad(number);
     }
     
     public static String pad(int i)

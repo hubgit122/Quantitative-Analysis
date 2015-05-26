@@ -6,9 +6,9 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Font;
 import java.awt.event.MouseListener;
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -28,7 +28,7 @@ public abstract class TableFrame extends JFrame
     JTable                    table;
     JLabel                    statusLabel      = new JLabel("列表视图");
     Font                      yahei            = new Font("YaHei", Font.PLAIN, 18);
-    File                      file;                                                //数据文件
+    InputStream               iniData;                                             //数据文件
     JScrollPane               statusPane;
     
     public void setStatusText(String s)
@@ -41,9 +41,9 @@ public abstract class TableFrame extends JFrame
         this(null);
     }
 
-    public TableFrame(File file)
+    public TableFrame(InputStream is)
     {
-        this.file = file;
+        this.iniData = is;
         initTable();
         initView();
         initListeners();

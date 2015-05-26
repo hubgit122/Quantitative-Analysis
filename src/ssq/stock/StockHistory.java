@@ -35,7 +35,7 @@ public class StockHistory extends Vector<DateData>
             fin.skip(length - (firstDay << 5));
         }
         
-        DateData lastDateData = new DateData(0, 0, 0, 1);
+        DateData lastDateData = new DateData(0, 0, 0, 0, 0, 1);
 
         while (lastDay <= 1 || size() <= lastDay - firstDay)
         {
@@ -43,9 +43,9 @@ public class StockHistory extends Vector<DateData>
             {
                 DateData tmp = DateData.getNext(fin, lastDateData.scale);
                 
-                if (tmp.end < MathUtils.round(0.9f * lastDateData.end)) //今天是除权除息日
+                if (tmp.closing < MathUtils.round(0.9f * lastDateData.closing)) //今天是除权除息日
                 {
-                    float s = getScale(tmp.start, lastDateData.end, (float) lastDateData.end / tmp.start) * lastDateData.scale;
+                    float s = getScale(tmp.opening, lastDateData.closing, (float) lastDateData.closing / tmp.opening) * lastDateData.scale;
                     lastDateData = tmp.setScale(s);
                 }
                 else

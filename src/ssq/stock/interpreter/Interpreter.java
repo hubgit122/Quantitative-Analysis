@@ -34,8 +34,6 @@ public class Interpreter
     int                              maxInfo;
     int                              backDays = 0;
     float                            minGrade;
-    String                           shFilter = "sh600.*|sh601.*|sh603.*";
-    String                           szFilter = "sz000.*|sz001.*|sz002.*|sz300.*";
 
     public static void main(String[] args) throws Exception
     {
@@ -60,8 +58,8 @@ public class Interpreter
         RuleParser parser = new RuleParser();
         parser.iniParser();
         
-        Vector<File> files = FileUtils.getFilteredListOf(new File(root, "vipdoc/sh/lday/"), true, shFilter);
-        files.addAll(FileUtils.getFilteredListOf(new File(root, "vipdoc/sz/lday/"), true, szFilter)); //先上海再深圳
+        Vector<File> files = FileUtils.getFilteredListOf(new File(root, "vipdoc/sh/lday/"), true, Stock.shFilter);
+        files.addAll(FileUtils.getFilteredListOf(new File(root, "vipdoc/sz/lday/"), true, Stock.szFilter)); //先上海再深圳
 
         GUI.statusText("开始分析");
         LogUtils.logString("开始分析", "进度信息", false);

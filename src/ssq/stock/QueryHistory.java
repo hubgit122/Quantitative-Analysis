@@ -63,7 +63,15 @@ public class QueryHistory
                         
                         File file = FileUtils.getFilteredListOf(new File(DirUtils.getWritableXxRoot("assets/query_history")), true, time + ".*").get(0);
 
-                        new QueryResultFrame(file);
+                        try
+                        {
+                            new QueryResultFrame(file);
+                        }
+                        catch (FileNotFoundException e1)
+                        {
+                            GUI.statusText(e1.getLocalizedMessage());
+                            e1.printStackTrace();
+                        }
                     }
                 };
             }
