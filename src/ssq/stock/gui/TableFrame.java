@@ -28,17 +28,17 @@ public abstract class TableFrame extends JFrame
     protected JLabel          statusLabel      = new JLabel("列表视图");
     protected InputStream     iniData;                                //某些超类可能需要使用的初始化输入流
     protected JScrollPane     statusPane;
-
+    
     public void setStatusText(String s)
     {
         statusLabel.setText(s);
     }
-    
+
     public TableFrame()
     {
         this(null);
     }
-
+    
     /**
      * 需要初始化数据的超类在构造时把初始化数据的InputStream传入本抽象基类的构造函数, 在超类的toTable方法里按需调用
      *
@@ -51,28 +51,28 @@ public abstract class TableFrame extends JFrame
         initView();
         initListeners();
     }
-    
+
     private int getPreferredWidthForColumn(TableColumn col)
     {
         int hw = columnHeaderWidth(col); // hw = header width
         int cw = widestCellInColumn(col); // cw = column width
-
+        
         return hw > cw ? hw : cw;
     }
-
+    
     private int columnHeaderWidth(TableColumn col)
     {
         TableCellRenderer renderer = table.getTableHeader().getDefaultRenderer();
         Component comp = renderer.getTableCellRendererComponent(table, col.getHeaderValue(), false, false, 0, 0);
-
+        
         return comp.getPreferredSize().width;
     }
-
+    
     private int widestCellInColumn(TableColumn col)
     {
         int c = col.getModelIndex();
         int width = 0, maxw = 0;
-
+        
         for (int r = 0; r < table.getRowCount(); r++)
         {
             TableCellRenderer renderer = table.getCellRenderer(r, c);
@@ -82,14 +82,14 @@ public abstract class TableFrame extends JFrame
         }
         return maxw;
     }
-    
-    protected void initListeners()
+
+    private void initListeners()
     {
         table.addMouseListener(getTableMouseListener());
     }
-    
+
     abstract protected MouseListener getTableMouseListener();
-    
+
     private void initView()
     {
         setBackground(Color.WHITE);
@@ -109,17 +109,17 @@ public abstract class TableFrame extends JFrame
         add(statusPane, BorderLayout.SOUTH);
         setResizable(false);
     }
-
+    
     public void updateTable()
     {
         try
         {
             Pair<Object[][], Object[]> data = toTable();
-            
+
             DefaultTableModel t = new DefaultTableModel(data.getKey(), data.getValue())
             {
                 private static final long serialVersionUID = 1L;
-
+                
                 @Override
                 public boolean isCellEditable(int row, int column)
                 {
@@ -129,18 +129,18 @@ public abstract class TableFrame extends JFrame
             table.setModel(t);
             table.updateUI();
         }
-        
+
         catch (Exception e1)
         {
             GUI.statusText(e1.getLocalizedMessage());
             e1.printStackTrace();
         }
     }
-
+    
     public void initTable()
     {
         updateTable();
     }
-
+    
     public abstract Pair<Object[][], Object[]> toTable() throws FileNotFoundException, IOException;
 }
