@@ -13,6 +13,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.nio.channels.FileChannel;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
@@ -22,28 +23,49 @@ import java.util.Vector;
 public class FileUtils
 {
     /**
-     * 复制文件
+     * 使用文件通道的方式复制文件
      *
-     * @param input
-     *            输入流
-     * @param newFile
-     *            新文件
-     * @throws Exception
+     * @param s
+     *            源文件
+     * @param t
+     *            复制到的新文件
      */
-    public static void copyFile(InputStream input, File newFile) throws Exception
+    public static void copyFile(File s, File t)
     {
-        OutputStream output = new FileOutputStream(newFile);
-        byte[] buffer = new byte[1024];
-        int i = 0;
-        while ((i = input.read(buffer)) != -1)
+        FileInputStream fi = null;
+        FileOutputStream fo = null;
+        FileChannel in = null;
+        FileChannel out = null;
+        
+        try
         {
-            output.write(buffer, 0, i);
+            fi = new FileInputStream(s);
+            fo = new FileOutputStream(t);
+            in = fi.getChannel();//得到对应的文件通道
+            out = fo.getChannel();//得到对应的文件通道
+            in.transferTo(0, in.size(), out);//连接两个通道，并且从in通道读取，然后写入out通道
         }
-        output.flush();
-        output.close();
-        input.close();
+        catch (IOException e)
+        {
+            e.printStackTrace();
+        }
+        finally
+        {
+            try
+            {
+                fi.close();
+                in.close();
+                fo.close();
+                out.close();
+                
+            }
+            catch (IOException e)
+            {
+                e.printStackTrace();
+            }
+        }
     }
-
+    
     /**
      * change the content to a string.
      *
@@ -69,7 +91,7 @@ public class FileUtils
             return "";
         }
     }
-
+    
     public static boolean fileToStream(File file, OutputStream o)
     {
         if (file.canRead() && file.isFile())
@@ -86,7 +108,7 @@ public class FileUtils
             BufferedInputStream bfin = new BufferedInputStream(fin);
             BufferedOutputStream bfout = new BufferedOutputStream(o);
             byte[] buffer = new byte[4096];
-
+            
             try
             {
                 while ((bfin.read(buffer)) != -1)
@@ -127,7 +149,7 @@ public class FileUtils
             return false;
         }
     }
-
+    
     /**
      * 读取输入流中的文本
      *
@@ -162,7 +184,7 @@ public class FileUtils
         input.close();
         return result.toString();
     }
-
+    
     /**
      * save string to a file(recover).
      *
@@ -184,7 +206,7 @@ public class FileUtils
             return false;
         }
     }
-
+    
     private final static String        SYS_TEMP_FILE = System.getProperty("java.io.tmpdir") + File.separator + "gamest.properties";
     private static Map<String, String> loadedProp    = new HashMap<String, String>();
     static
@@ -201,14 +223,14 @@ public class FileUtils
             }
         }
     }
-
+    
     public static final String getAPropertyFromSysTempFile(String key)
     {
         loadPropertiesFromSysTempFile();
         String val = loadedProp.get(key);
         return null == val ? "" : val;
     }
-
+    
     private static final boolean loadPropertiesFromSysTempFile()
     {
         try
@@ -231,7 +253,7 @@ public class FileUtils
             return false;
         }
     }
-
+    
     public static final int saveAPropertyToSysTempFile(String parameterName, String parameterValue)
     {
         Properties prop = new Properties();
@@ -239,11 +261,11 @@ public class FileUtils
         {
             InputStream fis = new FileInputStream(SYS_TEMP_FILE);
             prop.load(fis);
-
+            
             OutputStream fos = new FileOutputStream(SYS_TEMP_FILE);
             prop.setProperty(parameterName, parameterValue);
             prop.store(fos, "Update '" + parameterName + "' value");
-
+            
             loadedProp.put(parameterName, parameterValue);
             return loadedProp.size();
         }
@@ -253,12 +275,12 @@ public class FileUtils
             return -1;
         }
     }
-
+    
     public static Vector<File> getFilteredListOf(File dirFile, boolean filesNotDirs, String filter)//列出目录下所有的文件&文件夹
     {
         File[] files = dirFile.listFiles();
         Vector<File> result = new Vector<File>();
-
+        
         for (File file : files)
         {
             if ((file.isDirectory() ^ filesNotDirs) && (filter == null || file.getName().matches(filter)))
@@ -266,10 +288,10 @@ public class FileUtils
                 result.add(file);
             }
         }
-
+        
         return result;
     }
-
+    
     public static boolean delAllFile(String dirName)//删除指定文件夹下所有文件
     {
         boolean flag = true;
@@ -277,7 +299,7 @@ public class FileUtils
         if (!dirName.endsWith(File.separator))
         {
             dirName = dirName + File.separator;
-
+            
         }
         File dirFile = new File(dirName);
         //如果dir对应的文件不存在，或者不是一个文件夹则退出
@@ -286,7 +308,7 @@ public class FileUtils
             LogUtils.logWarningString("List失败！找不到目录：" + dirName, FileUtils.class.getName(), false);
             return false;
         }
-
+        
         //列出文件夹下所有的文件,listFiles方法返回目录下的所有文件（包括目录）的File对象
         File[] files = dirFile.listFiles();
         for (int i = 0; i < files.length; i++)
@@ -312,15 +334,15 @@ public class FileUtils
         }
         return flag;
     }
-
+    
     //##else
     public static String openAssetsString(String path)
     {
         return fileToString(new File(DirUtils.getProjectRoot() + "assets/", path));
     }
-
+    
     //##endif
-
+    
     public static String getExt(String path)
     {
         try
@@ -333,12 +355,12 @@ public class FileUtils
             return "";
         }
     }
-
+    
     public static final String fileToString(String string)
     {
         return fileToString(new File(string));
     }
-    
+
     public static Object getNameWithoutExt(String file)
     {
         try

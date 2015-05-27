@@ -94,6 +94,7 @@ public abstract class TableFrame extends JFrame
     {
         setBackground(Color.WHITE);
         //        setAlwaysOnTop(true);
+        setLocation(200, 450);
         setLayout(new BorderLayout());
         add(new JScrollPane(table), BorderLayout.CENTER);
         table.setFont(GUI.yahei);
