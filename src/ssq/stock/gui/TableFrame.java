@@ -28,17 +28,17 @@ public abstract class TableFrame extends JFrame
     protected JLabel          statusLabel      = new JLabel("列表视图");
     protected InputStream     iniData;                                //数据文件
     protected JScrollPane     statusPane;
-
+    
     public void setStatusText(String s)
     {
         statusLabel.setText(s);
     }
-    
+
     public TableFrame()
     {
         this(null);
     }
-    
+
     public TableFrame(InputStream is)
     {
         this.iniData = is;
@@ -47,28 +47,28 @@ public abstract class TableFrame extends JFrame
         initListeners();
         show();
     }
-    
+
     private int getPreferredWidthForColumn(TableColumn col)
     {
         int hw = columnHeaderWidth(col); // hw = header width
         int cw = widestCellInColumn(col); // cw = column width
-
+        
         return hw > cw ? hw : cw;
     }
-
+    
     private int columnHeaderWidth(TableColumn col)
     {
         TableCellRenderer renderer = table.getTableHeader().getDefaultRenderer();
         Component comp = renderer.getTableCellRendererComponent(table, col.getHeaderValue(), false, false, 0, 0);
-
+        
         return comp.getPreferredSize().width;
     }
-
+    
     private int widestCellInColumn(TableColumn col)
     {
         int c = col.getModelIndex();
         int width = 0, maxw = 0;
-
+        
         for (int r = 0; r < table.getRowCount(); r++)
         {
             TableCellRenderer renderer = table.getCellRenderer(r, c);
@@ -78,18 +78,18 @@ public abstract class TableFrame extends JFrame
         }
         return maxw;
     }
-    
+
     protected void initListeners()
     {
         table.addMouseListener(getTableMouseListener());
     }
-    
+
     abstract protected MouseListener getTableMouseListener();
-    
+
     private void initView()
     {
         setBackground(Color.WHITE);
-        setAlwaysOnTop(true);
+        //        setAlwaysOnTop(true);
         setLayout(new BorderLayout());
         add(new JScrollPane(table), BorderLayout.CENTER);
         table.setFont(GUI.yahei);
@@ -104,33 +104,33 @@ public abstract class TableFrame extends JFrame
         add(statusPane, BorderLayout.SOUTH);
         setResizable(false);
     }
-    
+
     public void initTable()
     {
         try
         {
             Pair<Object[][], Object[]> data = toTable();
-            
+
             DefaultTableModel t = new DefaultTableModel(data.getKey(), data.getValue())
             {
                 private static final long serialVersionUID = 1L;
-
+                
                 @Override
                 public boolean isCellEditable(int row, int column)
                 {
                     return false;
                 }
             };
-
+            
             table = new JTable(t);
         }
-        
+
         catch (Exception e1)
         {
             GUI.statusText(e1.getLocalizedMessage());
             e1.printStackTrace();
         }
     }
-
+    
     public abstract Pair<Object[][], Object[]> toTable() throws FileNotFoundException, IOException;
 }

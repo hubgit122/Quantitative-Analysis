@@ -27,30 +27,30 @@ public class QueryHistory
     public static void showHistoryTable()
     {
         final Vector<File> historyFiles = FileUtils.getFilteredListOf(new File(DirUtils.getWritableXxRoot("assets/query_history")), true, ".*");
-
+        
         new TableFrame()
         {
             private static final long serialVersionUID = 7147103186129623162L;
-            
+
             {
                 statusLabel.setText("单击历史以打开结果");
                 statusPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
             }
-
+            
             @Override
             public Pair<Object[][], Object[]> toTable() throws FileNotFoundException, IOException
             {
                 Vector<String[]> data = new Vector<>();
                 String[] names = new String[] { "时间", "回溯天数" };
-
+                
                 for (File file : historyFiles)
                 {
                     data.add(file.getName().split("\\.")[0].split("@"));
                 }
-
+                
                 return new Pair<Object[][], Object[]>(data.toArray(new String[][] {}), names);
             }
-
+            
             @Override
             protected MouseListener getTableMouseListener()
             {
@@ -61,14 +61,14 @@ public class QueryHistory
                     {
                         int row = table.convertRowIndexToModel(table.getSelectedRow());
                         int column = table.convertColumnIndexToModel(0);
-
-                        String time = table.getModel().getValueAt(row, column).toString();
                         
-                        File file = FileUtils.getFilteredListOf(new File(DirUtils.getWritableXxRoot("assets/query_history")), true, time + ".*").get(0);
+                        String time = table.getModel().getValueAt(row, column).toString();
 
+                        File file = FileUtils.getFilteredListOf(new File(DirUtils.getWritableXxRoot("assets/query_history")), true, time + ".*").get(0);
+                        
                         try
                         {
-                            new QueryResultFrame(file);
+                            new QueryResultFrame(file).setAlwaysOnTop(true);
                         }
                         catch (FileNotFoundException e1)
                         {
