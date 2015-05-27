@@ -19,7 +19,6 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 
-import ssq.stock.QueryHistory;
 import ssq.stock.interpreter.Interpreter;
 import ssq.utils.DirUtils;
 
@@ -153,14 +152,13 @@ public class GUI extends JFrame
                                           {
                                               restoreData();
                                           }
-                                          
                                       },
                                       new MouseAdapter()
                                       {
                                           @Override
                                           public void mouseClicked(MouseEvent e)
                                           {
-                                              QueryHistory.showHistoryTable();
+                                              QueryHistoryFrame.showQueryHistory();
                                           }
                                           
                                           @Override
@@ -230,6 +228,8 @@ public class GUI extends JFrame
                                                       }
                                                       
                                                       GUI.this.enableButtons();
+                                                      
+                                                      QueryHistoryFrame.showQueryHistory();
                                                   }
                                               }).start();
                                           }
