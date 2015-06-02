@@ -6,7 +6,21 @@ import java.io.InputStream;
 
 public class MathUtils
 {
+    public static float readLittleEndianFloat(InputStream in) throws IOException
+    {
+        int ch1 = in.read();
+        int ch2 = in.read();
+        int ch3 = in.read();
+        int ch4 = in.read();
 
+        if ((ch1 | ch2 | ch3 | ch4) < 0)
+        {
+            throw new IOException();
+        }
+
+        return Float.intBitsToFloat((ch1 | (ch2 << 8) | (ch3 << 16) | (ch4 << 24)));
+    }
+    
     public static int readLittleEndianInt(InputStream in) throws IOException
     {
         int ch1 = in.read();

@@ -1,39 +1,24 @@
 package ssq.stock.gui;
 
-import java.awt.Adjustable;
 import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Component;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyListener;
+import java.awt.event.MouseAdapter;
 import java.awt.event.MouseListener;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
-import javax.swing.ScrollPaneConstants;
 import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableCellRenderer;
-import javax.swing.table.TableColumn;
 
 import ssq.utils.Pair;
 
-public abstract class TableFrame extends JFrame
+public abstract class TableFrame extends FrameWithStatus
 {
-    private static final long serialVersionUID = 3146763463910064509L;
-    protected JTable          table            = new JTable();
-    protected JLabel          statusLabel      = new JLabel("列表视图");
-    protected InputStream     iniData;                                //某些超类可能需要使用的初始化输入流
-    protected JScrollPane     statusPane;
+    protected JTable table;
     
-    public void setStatusText(String s)
-    {
-        statusLabel.setText(s);
-    }
-
     public TableFrame()
     {
         this(null);
@@ -46,68 +31,46 @@ public abstract class TableFrame extends JFrame
      */
     public TableFrame(InputStream is)
     {
-        this.iniData = is;
-        initTable();
-        initView();
-        initListeners();
+        super(is);
     }
 
-    private int getPreferredWidthForColumn(TableColumn col)
+    @Override
+    protected void initData()
     {
-        int hw = columnHeaderWidth(col); // hw = header width
-        int cw = widestCellInColumn(col); // cw = column width
-        
-        return hw > cw ? hw : cw;
-    }
-    
-    private int columnHeaderWidth(TableColumn col)
-    {
-        TableCellRenderer renderer = table.getTableHeader().getDefaultRenderer();
-        Component comp = renderer.getTableCellRendererComponent(table, col.getHeaderValue(), false, false, 0, 0);
-        
-        return comp.getPreferredSize().width;
-    }
-    
-    private int widestCellInColumn(TableColumn col)
-    {
-        int c = col.getModelIndex();
-        int width = 0, maxw = 0;
-        
-        for (int r = 0; r < table.getRowCount(); r++)
-        {
-            TableCellRenderer renderer = table.getCellRenderer(r, c);
-            Component comp = renderer.getTableCellRendererComponent(table, table.getValueAt(r, c), false, false, r, c);
-            width = comp.getPreferredSize().width;
-            maxw = width > maxw ? width : maxw;
-        }
-        return maxw;
+        updateTable();
     }
 
-    private void initListeners()
+    @Override
+    protected void initListeners()
     {
         table.addMouseListener(getTableMouseListener());
+        table.addKeyListener(getTableKeyListener());
     }
 
-    abstract protected MouseListener getTableMouseListener();
-
-    private void initView()
+    protected KeyListener getTableKeyListener()
     {
-        setBackground(Color.WHITE);
-        //        setAlwaysOnTop(true);
-        setLocation(200, 450);
-        setLayout(new BorderLayout());
+        return new KeyAdapter()
+        {
+        };
+    }
+    
+    protected MouseListener getTableMouseListener()
+    {
+        return new MouseAdapter()
+        {
+        };
+    }
+
+    @Override
+    protected void initView()
+    {
+        super.initView();
+        
+        table = new JTable();
+
         add(new JScrollPane(table), BorderLayout.CENTER);
-        table.setFont(GUI.yahei);
-        TableColumn column = table.getColumnModel().getColumn(0);
-        column.setPreferredWidth(getPreferredWidthForColumn(column));
-        column = table.getColumnModel().getColumn(1);
-        column.setPreferredWidth(getPreferredWidthForColumn(column));
-        statusLabel.setFont(GUI.yahei);
+        table.setFont(GUI.SONGFONT_FONT);
         pack();
-        statusPane = new JScrollPane(statusLabel, ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
-        statusPane.setHorizontalScrollBar(new JScrollBar(Adjustable.HORIZONTAL));
-        add(statusPane, BorderLayout.SOUTH);
-        setResizable(false);
     }
     
     public void updateTable()
@@ -135,11 +98,6 @@ public abstract class TableFrame extends JFrame
             GUI.statusText(e1.getLocalizedMessage());
             e1.printStackTrace();
         }
-    }
-    
-    public void initTable()
-    {
-        updateTable();
     }
     
     public abstract Pair<Object[][], Object[]> toTable() throws FileNotFoundException, IOException;

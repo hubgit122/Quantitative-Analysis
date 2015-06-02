@@ -14,14 +14,38 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.nio.channels.FileChannel;
+import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
-import java.util.Vector;
 
 public class FileUtils
 {
+    public static void assertFileExists(File file)
+    {
+        if (file.isDirectory())
+        {
+            file.mkdirs();
+        }
+        else
+        {
+            if (!file.exists())
+            {
+                file.getParentFile().mkdirs();
+
+                try
+                {
+                    file.createNewFile();
+                }
+                catch (IOException e)
+                {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
     /**
      * 使用文件通道的方式复制文件
      *
@@ -276,10 +300,10 @@ public class FileUtils
         }
     }
     
-    public static Vector<File> getFilteredListOf(File dirFile, boolean filesNotDirs, String filter)//列出目录下所有的文件&文件夹
+    public static ArrayList<File> getFilteredListOf(File dirFile, boolean filesNotDirs, String filter)//列出目录下所有的文件&文件夹
     {
         File[] files = dirFile.listFiles();
-        Vector<File> result = new Vector<File>();
+        ArrayList<File> result = new ArrayList<File>();
         
         for (File file : files)
         {

@@ -1,5 +1,6 @@
 package ssq.stock.gui;
 
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
@@ -19,23 +20,23 @@ import java.util.Calendar;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JPanel;
 
 import ssq.stock.interpreter.Interpreter;
 import ssq.utils.DirUtils;
 import ssq.utils.FileUtils;
 
-public class GUI extends JFrame
+public class GUI extends FrameWithStatus
 {
     private static final String READY            = "查看参数是否正确, 并按开始";
 
     private static final long   serialVersionUID = 1L;
     
     public static GUI           instance         = null;
-    public JLabel               statusLabel      = new JLabel(READY);
-    JLabel[]                    labels           = new JLabel[] { new JLabel("选股公式"), new JLabel("通达信路径"), new JLabel("最大列表长度"), new JLabel("最小接受的分值"), new JLabel("回溯天数") };
-    protected TextField[]       textFields       = new TextField[] { new TextField(90), new TextField(90), new TextField(90), new TextField(90), new TextField(90) };
-    JButton[]                   buttons          = new JButton[] { new JButton("保存设置"), new JButton("恢复默认设置"), new JButton("显示结果"), new JButton("调试选股公式"), new JButton("开始选股") };
-    public static final Font    yahei            = new Font("宋体", Font.PLAIN, 16);
+    JLabel[]                    labels;
+    protected TextField[]       textFields;
+    JButton[]                   buttons;
+    public static final Font    SONGFONT_FONT    = new Font("宋体", Font.PLAIN, 16);
     
     public static void main(String[] args)
     {
@@ -46,21 +47,19 @@ public class GUI extends JFrame
     {
         if (GUI.instance != null)
         {
-            GUI.instance.statusLabel.setText(s);
+            GUI.instance.setStatusText(s);
         }
     }
 
     public GUI()
     {
-        super("选股");
-        iniView();
-        iniListeners();
-        iniData();
+        super(null);
         instance = this;
         setVisible(true);
     }
     
-    private void iniData()
+    @Override
+    protected void initData()
     {
         try
         {
@@ -69,7 +68,7 @@ public class GUI extends JFrame
             {
                 textFields[i].setText(reader.readLine());
             }
-
+            
             try
             {
                 reader.close();
@@ -81,13 +80,13 @@ public class GUI extends JFrame
         catch (Exception e)
         {
             e.printStackTrace();
-            
+
             restoreData();
         }
-
     }
     
-    protected void iniListeners()
+    @Override
+    protected void initListeners()
     {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         
@@ -96,149 +95,154 @@ public class GUI extends JFrame
             buttons[i].addMouseListener(listeners[i]);
         }
     }
-    
-    private MouseListener[] listeners = new MouseListener[] {
-                                      new MouseAdapter()
-                                      {
-                                          @Override
-                                          public void mouseEntered(MouseEvent e)
-                                          {
-                                              statusLabel.setText("保存设置到文件");
-                                          }
-                                          
-                                          @Override
-                                          public void mouseExited(MouseEvent e)
-                                          {
-                                              statusLabel.setText(READY);
-                                          }
-                                          
-                                          @Override
-                                          public void mouseClicked(MouseEvent e)
-                                          {
-                                              try
-                                              {
-                                                  File src = new File(DirUtils.getXxRoot("assets"), "pref.txt");
-                                                  
-                                                  FileWriter fileWriter = new FileWriter(src);
-                                                  for (int i = 0; i < textFields.length; i++)
-                                                  {
-                                                      fileWriter.write(textFields[i].getText() + "\r\n");
-                                                  }
-                                                  
-                                                  fileWriter.close();
-                                                  
-                                                  File dst = new File(DirUtils.getXxRoot("assets"), "pref" + Calendar.getInstance().getTimeInMillis() + ".txt");
-                                                  FileUtils.copyFile(src, dst);
-                                              }
-                                              catch (IOException e1)
-                                              {
-                                                  e1.printStackTrace();
-                                                  statusLabel.setText(e1.getLocalizedMessage());
-                                              }
-                                          }
-                                      },
-                                      new MouseAdapter()
-                                      {
-                                          @Override
-                                          public void mouseEntered(MouseEvent e)
-                                          {
-                                              statusLabel.setText("恢复成默认设置");
-                                          }
-                                          
-                                          @Override
-                                          public void mouseExited(MouseEvent e)
-                                          {
-                                              statusLabel.setText(READY);
-                                          }
-                                          
-                                          @Override
-                                          public void mouseClicked(MouseEvent e)
-                                          {
-                                              restoreData();
-                                          }
-                                      },
-                                      new MouseAdapter()
-                                      {
-                                          @Override
-                                          public void mouseClicked(MouseEvent e)
-                                          {
-                                              QueryHistoryFrame.showQueryHistory();
-                                          }
-                                          
-                                          @Override
-                                          public void mouseEntered(MouseEvent e)
-                                          {
-                                              statusLabel.setText("显示选股历史");
-                                          }
-                                          
-                                          @Override
-                                          public void mouseExited(MouseEvent e)
-                                          {
-                                              statusLabel.setText(READY);
-                                          }
-                                      },
-                                      new MouseAdapter()
-                                      {
-                                          @Override
-                                          public void mouseClicked(MouseEvent e)
-                                          {
-                                              new DebugFrame();
-                                          }
-                                          
-                                          @Override
-                                          public void mouseEntered(MouseEvent e)
-                                          {
-                                              statusLabel.setText("打开一个调试窗口, 调试各原子公式");
-                                          }
-                                          
-                                          @Override
-                                          public void mouseExited(MouseEvent e)
-                                          {
-                                              statusLabel.setText(READY);
-                                          }
-                                      },
-                                      new MouseAdapter()
-                                      {
-                                          @Override
-                                          public void mouseEntered(MouseEvent e)
-                                          {
-                                              statusLabel.setText("开始分析");
-                                          }
-                                          
-                                          @Override
-                                          public void mouseExited(MouseEvent e)
-                                          {
-                                              statusLabel.setText(READY);
-                                          }
-                                          
-                                          @Override
-                                          public void mouseClicked(MouseEvent e)
-                                          {
-                                              disableButtons();
-                                              
-                                              new Thread(new Runnable()
-                                              {
-                                                  @Override
-                                                  public void run()
-                                                  {
-                                                      try
-                                                      {
-                                                          new Interpreter(Integer.valueOf(textFields[2].getText()), Float.valueOf(textFields[3].getText()), Integer.valueOf(textFields[4].getText())).run(textFields[0].getText(), textFields[1].getText());
-                                                      }
-                                                      catch (Exception e1)
-                                                      {
-                                                          e1.printStackTrace();
-                                                          statusLabel.setText("执行出现异常" + e1.getLocalizedMessage());
-                                                      }
-                                                      
-                                                      GUI.this.enableButtons();
-                                                      
-                                                      QueryHistoryFrame.showQueryHistory();
-                                                  }
-                                              }).start();
-                                          }
-                                      }
-                                      };
+
+    public static GUI getInstance()
+    {
+        return instance;
+    }
+
+    static private MouseListener[] listeners = new MouseListener[] {
+        new MouseAdapter()
+        {
+            @Override
+            public void mouseEntered(MouseEvent e)
+            {
+                statusText("保存设置到文件");
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e)
+            {
+                statusText(READY);
+            }
+
+            @Override
+            public void mouseClicked(MouseEvent e)
+            {
+                try
+                {
+                    File src = new File(DirUtils.getXxRoot("assets"), "pref.txt");
+
+                    FileWriter fileWriter = new FileWriter(src);
+                    for (int i = 0; i < GUI.getInstance().textFields.length; i++)
+                    {
+                        fileWriter.write(GUI.getInstance().textFields[i].getText() + "\r\n");
+                    }
+
+                    fileWriter.close();
+
+                    File dst = new File(DirUtils.getXxRoot("assets"), "pref" + Calendar.getInstance().getTimeInMillis() + ".txt");
+                    FileUtils.copyFile(src, dst);
+                }
+                catch (IOException e1)
+                {
+                    e1.printStackTrace();
+                    statusText(e1.getLocalizedMessage());
+                }
+            }
+        },
+        new MouseAdapter()
+        {
+            @Override
+            public void mouseEntered(MouseEvent e)
+            {
+                statusText("恢复成默认设置");
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e)
+            {
+                statusText(READY);
+            }
+
+            @Override
+            public void mouseClicked(MouseEvent e)
+            {
+                GUI.getInstance().restoreData();
+            }
+        },
+        new MouseAdapter()
+        {
+            @Override
+            public void mouseClicked(MouseEvent e)
+            {
+                QueryHistoryFrame.showQueryHistory();
+            }
+
+            @Override
+            public void mouseEntered(MouseEvent e)
+            {
+                statusText("显示选股历史");
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e)
+            {
+                statusText(READY);
+            }
+        },
+        new MouseAdapter()
+        {
+            @Override
+            public void mouseClicked(MouseEvent e)
+            {
+                new DebugFrame();
+            }
+
+            @Override
+            public void mouseEntered(MouseEvent e)
+            {
+                statusText("打开一个调试窗口, 调试各原子公式");
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e)
+            {
+                statusText(READY);
+            }
+        },
+        new MouseAdapter()
+        {
+            @Override
+            public void mouseEntered(MouseEvent e)
+            {
+                statusText("开始分析");
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e)
+            {
+                statusText(READY);
+            }
+
+            @Override
+            public void mouseClicked(MouseEvent e)
+            {
+                GUI.getInstance().disableButtons();
+
+                new Thread(new Runnable()
+                {
+                    @Override
+                    public void run()
+                    {
+                        try
+                        {
+                            new Interpreter(Integer.valueOf(GUI.getInstance().textFields[2].getText()), Float.valueOf(GUI.getInstance().textFields[3].getText()), Integer.valueOf(GUI.getInstance().textFields[4].getText()), GUI.getInstance().textFields[0].getText(), GUI.getInstance().textFields[1].getText()).run();
+                        }
+                        catch (Exception e1)
+                        {
+                            e1.printStackTrace();
+                            statusText("执行出现异常" + e1.getLocalizedMessage());
+                        }
+
+                        GUI.getInstance().enableButtons();
+
+                        QueryHistoryFrame.showQueryHistory();
+                    }
+                }).start();
+            }
+        }
+    };
 
     private void disableButtons()
     {
@@ -259,7 +263,7 @@ public class GUI extends JFrame
             jButton.setEnabled(true);
         }
         
-        iniListeners();
+        initListeners();
     }
     
     private void restoreData()
@@ -279,12 +283,20 @@ public class GUI extends JFrame
         }
     }
     
-    protected void iniView()
+    @Override
+    protected void initView()
     {
+        super.initView();
+
+        labels = new JLabel[] { new JLabel("选股公式"), new JLabel("通达信路径"), new JLabel("最大列表长度"), new JLabel("最小接受的分值"), new JLabel("回溯天数") };
+        textFields = new TextField[] { new TextField(90), new TextField(90), new TextField(90), new TextField(90), new TextField(90) };
+        buttons = new JButton[] { new JButton("保存设置"), new JButton("恢复默认设置"), new JButton("显示结果"), new JButton("调试选股公式"), new JButton("开始选股") };
+        
+        setTitle("选股");
         setBackground(Color.WHITE);
-        //        setAlwaysOnTop(true);
-        setLayout(new GridBagLayout());
         setLocation(200, 200);
+        
+        JPanel main = new JPanel(new GridBagLayout());
 
         GridBagConstraints gbc = new GridBagConstraints();
         
@@ -303,13 +315,13 @@ public class GUI extends JFrame
             gbc.gridx = 0;
             gbc.gridwidth = 1;
             JLabel label = labels[i];
-            label.setFont(yahei);
+            label.setFont(SONGFONT_FONT);
             
-            add(label, gbc);
+            main.add(label, gbc);
             
             gbc.gridx = 1;
             gbc.gridwidth = GridBagConstraints.REMAINDER;
-            add(textFields[i], gbc);
+            main.add(textFields[i], gbc);
         }
 
         gbc.gridy++;
@@ -319,21 +331,19 @@ public class GUI extends JFrame
 
             gbc.gridx = i;
             gbc.gridwidth = 1;
-            button.setFont(yahei);
+            button.setFont(SONGFONT_FONT);
             if (i == buttons.length - 1)
             {
                 gbc.anchor = GridBagConstraints.EAST;
             }
-            add(button, gbc);
+            main.add(button, gbc);
         }
         
-        gbc.gridy++;
-        gbc.anchor = GridBagConstraints.WEST;
-        gbc.gridx = 0;
-        gbc.gridwidth = GridBagConstraints.REMAINDER;
-        add(statusLabel, gbc);
-
+        add(main, BorderLayout.CENTER);
+        
+        //        statusPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        //        statusPane.setPreferredSize(new Dimension(200, 20));
+        setStatusText(READY);
         pack();
-        setResizable(false);
     }
 }

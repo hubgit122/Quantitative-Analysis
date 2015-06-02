@@ -8,8 +8,9 @@ import java.io.Reader;
 import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
+import java.util.List;
 
-public class StrUtils
+public class StringUtils
 {
     private static char[] hexDigits = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' };
     
@@ -32,6 +33,28 @@ public class StrUtils
         return new String(str);
     }
     
+    public static String join(String d, List<?> contents)
+    {
+        boolean flag = false;
+        StringBuilder sb = new StringBuilder();
+
+        for (Object o : contents)
+        {
+            if (flag)
+            {
+                sb.append(d);
+            }
+            else
+            {
+                flag = true;
+            }
+
+            sb.append(o.toString());
+        }
+        
+        return sb.toString();
+    }
+    
     private static int hex2Dec(char c)
     {
         if (c <= '9')
@@ -45,7 +68,7 @@ public class StrUtils
     }
     
     /**
-     * 
+     *
      * @param s
      * @return
      */

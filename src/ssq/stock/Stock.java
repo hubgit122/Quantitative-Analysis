@@ -37,6 +37,20 @@ public class Stock
     {
         return (isShangHai ? "sh" : "sz") + pad(number);
     }
+
+    public static String pad(String s)
+    {
+        StringBuilder sb = new StringBuilder(6);
+
+        int end = 6 - s.length();
+        for (int j = 0; j < end; j++)
+        {
+            sb.append('0');
+        }
+        sb.append(s);
+
+        return sb.toString();
+    }
     
     public static String pad(int i)
     {

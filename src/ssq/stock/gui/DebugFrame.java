@@ -10,26 +10,24 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
+import java.io.BufferedOutputStream;
 import java.io.IOException;
-import java.util.Vector;
+import java.io.ObjectOutputStream;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 
-import org.apache.commons.lang.StringUtils;
-
 import ssq.stock.interpreter.Interpreter;
-import ssq.utils.Pair;
 
 public class DebugFrame extends JFrame
 {
-    private static final long serialVersionUID = 1L;
-    JLabel[]                  labels           = new JLabel[] { new JLabel("股票代码"), new JLabel("回溯天数") };
-    TextField[]               textFields       = new TextField[] { new TextField(6), new TextField(6) };
-    JButton                   ok               = new JButton("开始分项评分");
-    
+    JLabel[]    labels     = new JLabel[] { new JLabel("股票代码"), new JLabel("回溯天数") };
+    TextField[] textFields = new TextField[] { new TextField(6), new TextField(6) };
+    JButton     ok         = new JButton("开始分项评分");
+
     public DebugFrame()
     {
         initData();
@@ -37,21 +35,21 @@ public class DebugFrame extends JFrame
         initListeners();
         show();
     }
-
+    
     private void initData()
     {
         textFields[1].setText(GUI.instance.textFields[4].getText());
     }
-
+    
     private void initView()
     {
         setBackground(Color.WHITE);
         //        setAlwaysOnTop(true);
         setLayout(new GridBagLayout());
         setLocation(750, 450);
-
-        GridBagConstraints gbc = new GridBagConstraints();
         
+        GridBagConstraints gbc = new GridBagConstraints();
+
         gbc.gridheight = 1;
         gbc.weightx = 0;
         gbc.weighty = 0;
@@ -60,96 +58,80 @@ public class DebugFrame extends JFrame
         gbc.insets = new Insets(1, 1, 1, 1);
         gbc.ipadx = 1;
         gbc.ipady = 1;
-
+        
         for (int i = 0; i < labels.length; i++)
         {
             gbc.gridy++;
-
+            
             gbc.gridx = 0;
             gbc.gridwidth = 1;
             JLabel label = labels[i];
-            label.setFont(GUI.yahei);
-            
+            label.setFont(GUI.SONGFONT_FONT);
+
             add(label, gbc);
-            
+
             gbc.gridx = 1;
             gbc.gridwidth = GridBagConstraints.REMAINDER;
             add(textFields[i], gbc);
         }
-
-        gbc.gridy++;
         
+        gbc.gridy++;
+
         gbc.gridx = 0;
         gbc.gridwidth = 2;
-        ok.setFont(GUI.yahei);
+        ok.setFont(GUI.SONGFONT_FONT);
         gbc.fill = GridBagConstraints.BOTH;
         add(ok, gbc);
-        
+
         pack();
         setResizable(false);
     }
-
+    
     private void showResult()
     {
-        String fomular = GUI.instance.textFields[0].getText();
-        String[] fomulars = fomular.split("\\|\\|");
-
-        for (int i = 0; i < fomulars.length; i++)
+        try
         {
-            final String fomu = fomulars[i];
+            PipedOutputStream po = new PipedOutputStream();
+            PipedInputStream pi = new PipedInputStream();
+            final ObjectOutputStream o = new ObjectOutputStream(new BufferedOutputStream(po));
+            final Interpreter interpreter = new Interpreter(1, 0f, Integer.valueOf(textFields[1].getText()), GUI.instance.textFields[0].getText(), GUI.instance.textFields[1].getText(), "tmp", "s." + textFields[0].getText() + ".*");
+            interpreter.run();
+            pi.connect(po);
 
-            new TableFrame()
+            new Thread(new Runnable()
             {
-                private static final long serialVersionUID = 1L;
-
+                @Override
+                public void run()
                 {
-                    statusLabel.setText(" 公式: " + fomu);
-
                     try
                     {
-                        setTitle("股票: " + textFields[0].getText() + "总分: " + String.valueOf(new Interpreter(1, 0.f, Integer.valueOf(textFields[1].getText())).scan(fomu, GUI.instance.textFields[1].getText(), Integer.valueOf(textFields[1].getText()), Integer.valueOf(textFields[0].getText())).getKey() * 100));
+                        o.writeObject(interpreter.AST);
+                        o.writeObject(interpreter.evals.get(0));
                     }
-                    catch (Exception e)
+                    catch (IOException e)
                     {
                         e.printStackTrace();
                     }
-                }
-                
-                @Override
-                public Pair<Object[][], Object[]> toTable() throws IOException
-                {
-                    String[] atomFomular = fomu.split("&&");
-
-                    Vector<String[]> data = new Vector<>();
-                    String[] names = new String[] { "原子公式", "得分" };
-                    
-                    for (int j = 0; j < atomFomular.length; j++)
+                    finally
                     {
-                        String string = StringUtils.trim(atomFomular[j]);
-
                         try
                         {
-                            data.add(new String[] { string, String.valueOf(new Interpreter(1, 0.f, Integer.valueOf(textFields[1].getText())).scan(string, GUI.instance.textFields[1].getText(), Integer.valueOf(textFields[1].getText()), Integer.valueOf(textFields[0].getText())).getKey() * 100) });
+                            o.close();
                         }
-                        catch (Exception e)
+                        catch (IOException e)
                         {
-                            statusLabel.setText(e.getLocalizedMessage());
-                            e.printStackTrace();
                         }
                     }
-                    
-                    return new Pair<Object[][], Object[]>(data.toArray(new String[][] {}), names);
                 }
+            }).start();
 
-                @Override
-                protected MouseListener getTableMouseListener()
-                {
-                    return new MouseAdapter()
-                    {
-                    };
-                }
-            }.show();
+            new DetailedGradeFrame(pi).show();
         }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+        
     }
 
     private void initListeners()
@@ -164,12 +146,12 @@ public class DebugFrame extends JFrame
                 super.keyReleased(e);
             }
         };
-
+        
         for (TextField tf : textFields)
         {
             tf.addKeyListener(tmp);
         }
-
+        
         ok.addMouseListener(new MouseAdapter()
         {
             @Override

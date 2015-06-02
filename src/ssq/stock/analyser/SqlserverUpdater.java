@@ -12,13 +12,18 @@ public class SqlserverUpdater extends Analyzer
 {
     SqlAccesser accesser = new SqlServerAccesser("Stock");
     
+    public SqlserverUpdater(String string)
+    {
+        super(string, Stock.stockFilter);
+    }
+
     public static void main(String[] args) throws Exception
     {
-        new SqlserverUpdater().run("x:/广发证券通达信/");
+        new SqlserverUpdater("x:/广发证券通达信/").run();
     }
     
     @Override
-    void scan(File f) throws IOException
+    public void scan(File f) throws IOException
     {
         Stock stock = new Stock(f, -1, -1);
 
@@ -28,7 +33,7 @@ public class SqlserverUpdater extends Analyzer
 
             try
             {
-                accesser.update("INSERT INTO dayline VALUES (?,?,?,?,?,?,?)", new Object[] { stock.number, data.date, data.opening, data.closing, data.highest, data.lowest, data.scale });
+                accesser.update("INSERT INTO dayline VALUES (?,?,?,?,?,?,?)", new Object[] { stock.number, data.date, data.vals[0], data.vals[1], data.vals[2], data.vals[3], data.scale });
             }
             catch (Exception e)
             {

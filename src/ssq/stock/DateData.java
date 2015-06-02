@@ -4,15 +4,14 @@ import java.io.DataInputStream;
 import java.io.IOException;
 import java.util.Date;
 
+import ssq.stock.interpreter.ReflectTreeBuilder.ValueType;
 import ssq.utils.MathUtils;
 
 public class DateData
 {
     public int   date;
-    public int   opening;  // 开盘价
-    public int   highest; //高
-    public int   lowest; //低
-    public int   closing;    // 收盘价
+    public int[] vals = new int[6]; //开 高 低 收 量 上次收盘
+    public float amountOfDeal;     //成交额
     public float scale;
 
     @SuppressWarnings("deprecation")
@@ -33,20 +32,31 @@ public class DateData
         return this;
     }
 
-    public DateData(int date, int k, int g, int d, int s, float scale)
+    public DateData(int date, int k, int g, int d, int s, float qunt, int sum, float scale)
     {
         this.date = date;
         this.scale = scale;
-
-        opening = k;
-        highest = g;
-        lowest = d;
-        closing = s;
+        
+        int i = 0;
+        vals[i++] = k;
+        vals[i++] = g;
+        vals[i++] = d;
+        vals[i++] = s;
+        amountOfDeal = qunt;
+        vals[i++] = sum;
     }
 
-    public int getScaledVal()
+    public int getScaledVal(ValueType type)
     {
-        return MathUtils.round(closing * scale);
+        int index = type.ordinal();
+        if (index == 4)
+        {
+            return vals[4];
+        }
+        else
+        {
+            return MathUtils.round(vals[index] * scale);
+        }
     }
     
     public static DateData getNext(DataInputStream in, float scale) throws IOException
@@ -56,9 +66,12 @@ public class DateData
         int g = MathUtils.readLittleEndianInt(in);
         int d = MathUtils.readLittleEndianInt(in);
         int s = MathUtils.readLittleEndianInt(in);
-
-        DateData result = new DateData(date, k, g, d, s, scale);
-        in.skip(12);
+        float a = MathUtils.readLittleEndianFloat(in);
+        int sum = MathUtils.readLittleEndianInt(in);
+        int last = MathUtils.readLittleEndianInt(in);
+        
+        DateData result = new DateData(date, k, g, d, s, a, sum, scale);
+        
         return result;
     }
 }

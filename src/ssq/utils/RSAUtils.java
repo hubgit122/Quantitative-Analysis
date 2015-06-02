@@ -96,7 +96,7 @@ public class RSAUtils
     
     public static KeyPair loadKeyPair(String fileName) throws Exception
     {
-        if (StrUtils.noContent(fileName))
+        if (StringUtils.noContent(fileName))
         {
             fileName = "RSAkeys";
         }
@@ -110,7 +110,7 @@ public class RSAUtils
     
     public static void storeKeyPair(KeyPair kp, String fileName) throws Exception
     {
-        if (StrUtils.noContent(fileName))
+        if (StringUtils.noContent(fileName))
         {
             fileName = "RSAkeys";
         }

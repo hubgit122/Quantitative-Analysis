@@ -6,9 +6,7 @@ import java.awt.event.MouseListener;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.Vector;
-
-import javax.swing.ScrollPaneConstants;
+import java.util.ArrayList;
 
 import ssq.utils.DirUtils;
 import ssq.utils.FileUtils;
@@ -17,7 +15,7 @@ import ssq.utils.Pair;
 public class QueryHistoryFrame extends TableFrame
 {
     public static QueryHistoryFrame instance = null;
-
+    
     public static void showQueryHistory()
     {
         if (instance == null)
@@ -30,28 +28,29 @@ public class QueryHistoryFrame extends TableFrame
         }
         instance.show();
     }
-
+    
     public QueryHistoryFrame()
     {
         statusLabel.setText("单击历史以打开结果");
-        statusPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        //        statusPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        //        statusPane.setPreferredSize(new Dimension(200, 20));
     }
-    
+
     @Override
     public Pair<Object[][], Object[]> toTable() throws FileNotFoundException, IOException
     {
-        final Vector<File> historyFiles = FileUtils.getFilteredListOf(new File(DirUtils.getWritableXxRoot("assets/query_history")), true, ".*");
-        Vector<String[]> data = new Vector<>();
+        final ArrayList<File> historyFiles = FileUtils.getFilteredListOf(new File(DirUtils.getWritableXxRoot("assets/query_history")), true, ".*");
+        ArrayList<String[]> data = new ArrayList<>();
         String[] names = new String[] { "时间", "回溯天数" };
-        
+
         for (File file : historyFiles)
         {
             data.add(file.getName().split("\\.")[0].split("@"));
         }
-        
+
         return new Pair<Object[][], Object[]>(data.toArray(new String[][] {}), names);
     }
-    
+
     @Override
     protected MouseListener getTableMouseListener()
     {
@@ -62,11 +61,11 @@ public class QueryHistoryFrame extends TableFrame
             {
                 int row = table.convertRowIndexToModel(table.getSelectedRow());
                 int column = table.convertColumnIndexToModel(0);
-                
-                String time = table.getModel().getValueAt(row, column).toString();
 
-                File file = FileUtils.getFilteredListOf(new File(DirUtils.getWritableXxRoot("assets/query_history")), true, time + ".*").get(0);
+                String time = table.getModel().getValueAt(row, column).toString();
                 
+                File file = FileUtils.getFilteredListOf(new File(DirUtils.getWritableXxRoot("assets/query_history")), true, time + ".*").get(0);
+
                 try
                 {
                     QueryResultFrame tmp = new QueryResultFrame(file);

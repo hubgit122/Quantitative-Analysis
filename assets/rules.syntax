@@ -1,10 +1,9 @@
-// 随手写的例子: min(250->1) < min(750->251) && max(5->1) > max(300->6) && max(250->1)/min(250->1) <= 1.5
-// 发现只要支持min和max函数, 不等号, 逻辑连接词, 数字和四则运算, 和一个持续表达式
-rules ::= rule | rules "||" rule;
+// 需要支持min和max函数, 不等号, 逻辑连接词, 数字和四则运算, 和一个持续表达式
+ruleExpr ::= ruleTerm | ruleExpr "||" ruleTerm;
 
-rule ::= ruleterm | rule "&&" ruleterm;
+ruleTerm ::= ruleFactor | ruleTerm "&&" ruleFactor;
 
-ruleterm ::= EXPRESSION C EXPRESSION ;
+ruleFactor ::= EXPRESSION C EXPRESSION ( "@" `float` )? | '(' ruleExpr ')'; 
 
 EXPRESSION ::= TERM;
 EXPRESSION ::= EXPRESSION '+' TERM;
@@ -15,14 +14,17 @@ TERM ::= TERM '*' FACTOR;
 TERM ::= TERM '/' FACTOR;
 
 FACTOR ::= `float` | `digits`;
-FACTOR ::= func args ;
+FACTOR ::= func '(' args ')' ('.' appendix)? (".." "norest" )?;
 FACTOR ::= '-' FACTOR;
 FACTOR ::= '(' EXPRESSION ')';
 
-func ::= "max" | "min";
+func ::= "max" | "min" | "sum" | "mean" | "avarage";
 
-args ::= "(" EXPRESSION "->" EXPRESSION ")";   // 如果不是整形, 自动转化. 
+args ::= EXPRESSION | args delimiter EXPRESSION ;
+delimiter ::= ","|"->";
 
-ignored ::= `whitespaces` | `cstylecomment`;
+appendix ::= "highest" | "lowest" | "opening" | "closing" | "quantity";
 
 C ::= "<=" | "==" | ">=" | "<" | ">" ;
+
+ignored ::= `whitespaces` | `cstylecomment`;

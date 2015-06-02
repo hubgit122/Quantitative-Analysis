@@ -170,7 +170,7 @@ public class MyRSAUtils
     
     public static KeyPair loadKeys(String fileName) throws Exception
     {
-        if (StrUtils.noContent(fileName))
+        if (StringUtils.noContent(fileName))
         {
             fileName = "RSAkeys";
         }
@@ -184,7 +184,7 @@ public class MyRSAUtils
     
     public void storeKeyPair(String fileName) throws Exception
     {
-        if (StrUtils.noContent(fileName))
+        if (StringUtils.noContent(fileName))
         {
             fileName = "RSAkeys";
         }
@@ -452,7 +452,7 @@ public class MyRSAUtils
     public String sign(String m, int to) throws Exception
     {
         StringBuilder s = new StringBuilder(m);
-        s.append("@").append(StrUtils.getPaddedHex(Calendar.getInstance().getTimeInMillis(), 11)).append("#").append(StrUtils.getPaddedHex(count.get(to).addOne(), 11));
+        s.append("@").append(StringUtils.getPaddedHex(Calendar.getInstance().getTimeInMillis(), 11)).append("#").append(StringUtils.getPaddedHex(count.get(to).addOne(), 11));
         byte[] h = hashGenerator.hash(s.toString().getBytes());
         byte[] sign = encryptBlock(h, 0, h.length, ee.get(PRIVATE_MODE), nn.get(PRIVATE_MODE), lhash.get(to).getBytes());
         s.append("^").append(Base64Utils.encode(sign).toString());

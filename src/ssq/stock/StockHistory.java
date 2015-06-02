@@ -5,9 +5,10 @@ import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 
+import ssq.stock.interpreter.ReflectTreeBuilder.ValueType;
 import ssq.utils.MathUtils;
 
 /**
@@ -16,7 +17,7 @@ import ssq.utils.MathUtils;
  *
  * @author s
  */
-public class StockHistory extends Vector<DateData>
+public class StockHistory extends ArrayList<DateData>
 {
     private static final long serialVersionUID = 1L;
     
@@ -35,7 +36,7 @@ public class StockHistory extends Vector<DateData>
             fin.skip(length - (firstDay << 5));
         }
         
-        DateData lastDateData = new DateData(0, 0, 0, 0, 0, 1);
+        DateData lastDateData = new DateData(0, 0, 0, 0, 0, 0, 0, 1f);
 
         while (lastDay <= 1 || size() <= lastDay - firstDay)
         {
@@ -43,9 +44,9 @@ public class StockHistory extends Vector<DateData>
             {
                 DateData tmp = DateData.getNext(fin, lastDateData.scale);
                 
-                if (tmp.closing < MathUtils.round(0.9f * lastDateData.closing)) //今天是除权除息日
+                if (tmp.vals[3] < MathUtils.round(0.9f * lastDateData.vals[3])) //今天是除权除息日
                 {
-                    float s = getScale(tmp.opening, lastDateData.closing, (float) lastDateData.closing / tmp.opening) * lastDateData.scale;
+                    float s = getScale(tmp.vals[0], lastDateData.vals[3], (float) lastDateData.vals[3] / tmp.vals[0]) * lastDateData.scale;
                     lastDateData = tmp.setScale(s);
                 }
                 else
@@ -106,29 +107,61 @@ public class StockHistory extends Vector<DateData>
         return result;
     }
 
-    public float func(String method, List<Float> args)
+    public float func(String method, List<Float> args, ValueType type, boolean rest)
     {
         switch (method)
         {
             case "min":
-                return min(args.get(0).intValue() + args.get(2).intValue(), args.get(1).intValue() + args.get(2).intValue());
+                return min(args.get(0).intValue() + args.get(2).intValue(), args.get(1).intValue() + args.get(2).intValue(), type, rest);
 
             case "max":
-                return max(args.get(0).intValue() + args.get(2).intValue(), args.get(1).intValue() + args.get(2).intValue());
+                return max(args.get(0).intValue() + args.get(2).intValue(), args.get(1).intValue() + args.get(2).intValue(), type, rest);
+                
+            case "sum":
+                return sum(args.get(0).intValue() + args.get(2).intValue(), args.get(1).intValue() + args.get(2).intValue(), type, rest);
+                
+                //            case "mean":
+                //                return mean(args.get(0).intValue() + args.get(2).intValue(), args.get(1).intValue() + args.get(2).intValue(), type, rest);
+
+            case "avarage":
+                return avarage(args.get(0).intValue() + args.get(2).intValue(), args.get(1).intValue() + args.get(2).intValue(), type, rest);
 
             default:
-                return -1;
+                throw new UnsupportedOperationException(method);
         }
     }
     
-    private int max(int firstDay, int lastDay)
+    private float avarage(int firstDay, int lastDay, ValueType type, boolean rest)
+    {
+        return sum(firstDay, lastDay, type, rest) / (firstDay - lastDay + 1);
+    }
+    
+    //    private float mean(int firstDay, int lastDay, ValueType type, boolean rest)
+    //    {
+    //        return -1;
+    //    }
+    
+    private float sum(int firstDay, int lastDay, ValueType type, boolean rest)
+    {
+        int result = 0;
+        int size = size();
+
+        for (int i = size - firstDay; i <= size - lastDay; i++)
+        {
+            int s = rest ? MathUtils.round(get(i).getScaledVal(type)) : get(i).vals[type.ordinal()];
+            result += s;
+        }
+        return result;
+    }
+    
+    private int max(int firstDay, int lastDay, ValueType type, boolean rest)
     {
         int result = Integer.MIN_VALUE;
         int size = size();
 
         for (int i = size - firstDay; i <= size - lastDay; i++)
         {
-            int s = MathUtils.round(get(i).getScaledVal());
+            int s = rest ? MathUtils.round(get(i).getScaledVal(type)) : get(i).vals[type.ordinal()];
             
             if (s > result)
             {
@@ -138,14 +171,14 @@ public class StockHistory extends Vector<DateData>
         return result;
     }
     
-    private int min(int firstDay, int lastDay)
+    private int min(int firstDay, int lastDay, ValueType type, boolean rest)
     {
         int result = Integer.MAX_VALUE;
         int size = size();
 
         for (int i = size - firstDay; i <= size - lastDay; i++)
         {
-            int s = MathUtils.round(get(i).getScaledVal());
+            int s = rest ? MathUtils.round(get(i).getScaledVal(type)) : get(i).vals[type.ordinal()];
             
             if (s < result)
             {
