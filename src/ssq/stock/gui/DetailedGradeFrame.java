@@ -8,40 +8,41 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeModel;
 
-import ssq.stock.interpreter.ReflectTreeBuilder.BiRuleExpression;
-import ssq.stock.interpreter.ReflectTreeBuilder.RuleExpression;
+import ssq.stock.interpreter.ReflectTreeBuilder.CompositeRule;
+import ssq.stock.interpreter.ReflectTreeBuilder.RuleLevel;
 import ssq.utils.Pair;
 import ssq.utils.TreeNode;
 
 public class DetailedGradeFrame extends TreeFrame
 {
-    RuleExpression                 AST;
+    RuleLevel                      AST;
     Pair<Integer, TreeNode<Float>> record;
-    
+
     public DetailedGradeFrame(InputStream is)
     {
         super(is);
+        switchExpand(tree.getPathForRow(0), true);
     }
-
+    
     @Override
     protected void initView()
     {
         super.initView();
     }
-
+    
     @Override
     protected TreeModel toTree()
     {
         try
         {
             ObjectInputStream i = new ObjectInputStream(new BufferedInputStream(iniData));
-            AST = (RuleExpression) i.readObject();
+            AST = (RuleLevel) i.readObject();
             record = (Pair<Integer, TreeNode<Float>>) i.readObject();
             i.close();
-
+            
             statusLabel.setText(" 公式: " + AST.toString());
             setTitle("股票: " + record.getKey() + " 总分: " + String.valueOf(record.getValue().getElement() * 100));
-            
+
             return new DefaultTreeModel(getTreeRecursively(AST, record.getValue()));
         }
         catch (Exception e)
@@ -50,18 +51,21 @@ public class DetailedGradeFrame extends TreeFrame
             return null;
         }
     }
-
-    private DefaultMutableTreeNode getTreeRecursively(RuleExpression expr, TreeNode<Float> node)
+    
+    private DefaultMutableTreeNode getTreeRecursively(RuleLevel expr, TreeNode<Float> node)
     {
-        DefaultMutableTreeNode result = new DefaultMutableTreeNode(expr.toString() + ":" + node.getElement() * 100);
-
-        if (expr instanceof BiRuleExpression)
-        {
-            BiRuleExpression biRuleExpression = (BiRuleExpression) expr;
-            result.add(getTreeRecursively(biRuleExpression.lrule, node.getChildList().get(0)));
-            result.add(getTreeRecursively(biRuleExpression.rrule, node.getChildList().get(1)));
-        }
+        DefaultMutableTreeNode result = new DefaultMutableTreeNode(node.getElement() * 100 + "      " + expr.toString());
         
+        if (expr instanceof CompositeRule)
+        {
+            int i = 0;
+            CompositeRule composite = (CompositeRule) expr;
+            for (RuleLevel ruleLevel : composite.rules)
+            {
+                result.add(getTreeRecursively(ruleLevel, node.getChildList().get(i++)));
+            }
+        }
+
         return result;
     }
 }

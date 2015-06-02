@@ -8,13 +8,13 @@ import java.util.LinkedList;
 
 import ssq.stock.Stock;
 import ssq.stock.interpreter.Interpreter;
-import ssq.stock.interpreter.ReflectTreeBuilder.RuleExpression;
+import ssq.stock.interpreter.ReflectTreeBuilder.RuleLevel;
 import ssq.utils.Pair;
 
 public class FomularOptimizer extends Analyzer
 {
     private String         fomular;
-    private RuleExpression rules;
+    private RuleLevel rules;
     private LinkedList<Pair<Integer, Integer>> preferedList = new LinkedList<>(), notPreferedList = new LinkedList<>();
 
     public FomularOptimizer(String root, String fomular)

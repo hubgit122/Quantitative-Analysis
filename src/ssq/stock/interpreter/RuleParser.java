@@ -4,7 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
 
-import ssq.stock.interpreter.ReflectTreeBuilder.RuleExpression;
+import ssq.stock.interpreter.ReflectTreeBuilder.RuleLevel;
 import ssq.utils.DirUtils;
 import ssq.utils.FileUtils;
 import fri.patterns.interpreter.parsergenerator.Lexer;
@@ -58,7 +58,7 @@ public class RuleParser
         return parser;
     }
     
-    public RuleExpression getRoot(String input)
+    public RuleLevel getRoot(String input)
     {
         try
         {
@@ -66,7 +66,7 @@ public class RuleParser
             
             if (parser.parse(new ReflectTreeBuilder()))
             {
-                return (RuleExpression) parser.getResult();
+                return (RuleLevel) parser.getResult();
             }
             else
             {

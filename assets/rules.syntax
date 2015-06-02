@@ -3,7 +3,7 @@ ruleExpr ::= ruleTerm | ruleExpr "||" ruleTerm;
 
 ruleTerm ::= ruleFactor | ruleTerm "&&" ruleFactor;
 
-ruleFactor ::= EXPRESSION C EXPRESSION ( "@" `float` )? | '(' ruleExpr ')'; 
+ruleFactor ::= EXPRESSION C EXPRESSION ( "@" (`float` | `digits`) )? | '(' ruleExpr ')'; 
 
 EXPRESSION ::= TERM;
 EXPRESSION ::= EXPRESSION '+' TERM;
