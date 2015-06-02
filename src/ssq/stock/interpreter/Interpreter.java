@@ -173,6 +173,7 @@ public class Interpreter extends Analyzer
             {
                 grade = Math.min(rExp / lExp, lExp / rExp);
             }
+            grade = 1 - (1 - grade) * val.weight;
 
             result = new TreeNode<Float>(grade);
             result.addChild(lExp);
