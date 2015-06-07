@@ -165,8 +165,12 @@ public class StringUtils
         return upperCaseStr;
     }
     
-    public static String convertStreamToString(InputStream is)
+    public static String convertStreamToString(InputStream is, String encoding)
     {
+        if (encoding == null)
+        {
+            encoding = "UTF-8";
+        }
         /*
          * To convert the InputStream to String we use the Reader.read(char[]
          * buffer) method. We iterate until the Reader return -1 which means there's
@@ -180,7 +184,7 @@ public class StringUtils
             char[] buffer = new char[1024];
             try
             {
-                Reader reader = new BufferedReader(new InputStreamReader(is, "UTF-8"));
+                Reader reader = new BufferedReader(new InputStreamReader(is, encoding));
                 int n;
                 while ((n = reader.read(buffer)) != -1)
                 {

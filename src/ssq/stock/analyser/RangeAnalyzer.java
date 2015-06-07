@@ -9,25 +9,23 @@ import java.util.ListIterator;
 import ssq.stock.DateData;
 import ssq.stock.Stock;
 import ssq.stock.interpreter.ReflectTreeBuilder.ValueType;
-import ssq.utils.LogUtils;
 
 public class RangeAnalyzer extends Analyzer
 {
     
-    File outPre = new File("横盘统计.txt");
-    File outNow = new File("牛市统计.txt");
-
+    File outPre  = new File("横盘统计.txt");
+    File outNow  = new File("牛市统计.txt");
+    
+    File outGrow = new File("大涨前夕.txt");
+    File outDrop = new File("大跌前夕.txt");
+    
     public static void main(String[] args) throws Exception
     {
-        LogUtils.logString(args[0], "通达信的安装路径", false);
-
-        new RangeAnalyzer(args[0]).run();
+        new RangeAnalyzer().run();
     }
 
-    public RangeAnalyzer(String root)
+    public RangeAnalyzer()
     {
-        super(root, Stock.stockFilter);
-
         if (outNow.isFile())
         {
             outNow.delete();
@@ -51,7 +49,7 @@ public class RangeAnalyzer extends Analyzer
 
         public void insert(DateData data)
         {
-            int scaledVal = data.getScaledVal(ValueType.closing);
+            float scaledVal = data.getScaledVal(ValueType.closing);
             boolean succ = false;
             for (ListIterator<DateData> i = valOrder.listIterator(); i.hasNext();)
             {
@@ -90,12 +88,10 @@ public class RangeAnalyzer extends Analyzer
     }
 
     @Override
-    public void scan(File f)
+    public void scan(Stock s)
     {
         try
         {
-            Stock s = new Stock(f, -1, -1);
-
             if (s.history.size() == 0)
             {
                 throw new Exception(s + " 空文件");
@@ -109,7 +105,7 @@ public class RangeAnalyzer extends Analyzer
             for (int i = 0; i < s.history.size(); i++)
             {
                 DateData thisDay = s.history.get(i);
-                int scaledVal = thisDay.getScaledVal(ValueType.closing);
+                float scaledVal = thisDay.getScaledVal(ValueType.closing);
 
                 recoder.insert(thisDay);
 
@@ -139,12 +135,12 @@ public class RangeAnalyzer extends Analyzer
                         
                         StringBuilder sb = new StringBuilder();
                         sb.append(s.number).append(' ')
-                                .append(minInQueue.date).append(' ').append(minInQueue.vals[3]).append(' ').append(String.valueOf(minInQueue.scale).substring(0, Math.min(4, String.valueOf(minInQueue.scale).length()))).append(' ').append(minInQueue.getScaledVal(ValueType.closing)).append(' ')
-                                .append(maxInQueue.date).append(' ').append(maxInQueue.vals[3]).append(' ').append(String.valueOf(maxInQueue.scale).substring(0, Math.min(4, String.valueOf(maxInQueue.scale).length()))).append(' ').append(maxInQueue.getScaledVal(ValueType.closing)).append(' ')
-                                .append(thisDay.date).append(' ').append(thisDay.vals[3]).append(' ').append(String.valueOf(thisDay.scale).substring(0, Math.min(4, String.valueOf(thisDay.scale).length()))).append(' ').append(thisDay.getScaledVal(ValueType.closing)).append(' ')
+                                .append(minInQueue.date).append(' ').append(minInQueue.getVal(ValueType.closing)).append(' ').append(String.valueOf(minInQueue.getVal(ValueType.scale)).substring(0, Math.min(4, String.valueOf(minInQueue.getVal(ValueType.scale)).length()))).append(' ').append(minInQueue.getScaledVal(ValueType.closing)).append(' ')
+                                .append(maxInQueue.date).append(' ').append(maxInQueue.getVal(ValueType.closing)).append(' ').append(String.valueOf(maxInQueue.getVal(ValueType.scale)).substring(0, Math.min(4, String.valueOf(maxInQueue.getVal(ValueType.scale)).length()))).append(' ').append(maxInQueue.getScaledVal(ValueType.closing)).append(' ')
+                                .append(thisDay.date).append(' ').append(thisDay.getVal(ValueType.closing)).append(' ').append(String.valueOf(thisDay.getVal(ValueType.scale)).substring(0, Math.min(4, String.valueOf(thisDay.getVal(ValueType.scale)).length()))).append(' ').append(thisDay.getScaledVal(ValueType.closing)).append(' ')
                                 .append((DateData.numberToDate(maxInQueue.date).getTime() - DateData.numberToDate(minInQueue.date).getTime()) / (1000 * 3600 * 24)).append(' ')
                                 .append((DateData.numberToDate(thisDay.date).getTime() - DateData.numberToDate(maxInQueue.date).getTime()) / (1000 * 3600 * 24)).append(' ')
-                                .append((float) maxInQueue.getScaledVal(ValueType.closing) / (float) minInQueue.getScaledVal(ValueType.closing) - 1f).append(' ').append(1f - (float) thisDay.getScaledVal(ValueType.closing) / (float) maxInQueue.getScaledVal(ValueType.closing)).append(' ')
+                                .append(maxInQueue.getScaledVal(ValueType.closing) / minInQueue.getScaledVal(ValueType.closing) - 1f).append(' ').append(1f - thisDay.getScaledVal(ValueType.closing) / maxInQueue.getScaledVal(ValueType.closing)).append(' ')
                                 .append("\r\n");
 
                         fout.write(sb.toString());

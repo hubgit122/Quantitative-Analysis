@@ -13,18 +13,17 @@ import ssq.utils.Pair;
 
 public class FomularOptimizer extends Analyzer
 {
-    private String         fomular;
+    private String    fomular;
     private RuleLevel rules;
     private LinkedList<Pair<Integer, Integer>> preferedList = new LinkedList<>(), notPreferedList = new LinkedList<>();
-
-    public FomularOptimizer(String root, String fomular)
+    
+    public FomularOptimizer(String fomular)
     {
-        super(root, Stock.stockFilter);
         this.fomular = fomular;
-
+        
         iniLists();
     }
-    
+
     private void iniLists()
     {
         BufferedReader fin = null;
@@ -51,7 +50,7 @@ public class FomularOptimizer extends Analyzer
             {
             }
         }
-        
+
         try
         {
             fin = new BufferedReader(new FileReader(new File("not_prefered.txt")));
@@ -76,18 +75,19 @@ public class FomularOptimizer extends Analyzer
             }
         }
     }
-
+    
     @Override
     public void run() throws Exception
     {
         rules = Interpreter.parser.getRoot(fomular);
-
+        
         super.run();
     }
-    
+
     @Override
-    public void scan(File f) throws IOException
+    public void scan(Stock stock) throws IOException
     {
-        
+        // TODO 自动生成的方法存根
+
     }
 }

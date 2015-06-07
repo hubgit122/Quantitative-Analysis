@@ -13,6 +13,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.net.URL;
+import java.net.URLConnection;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.Enumeration;
@@ -22,7 +24,7 @@ import java.util.Properties;
 
 public class FileUtils
 {
-    public static void assertFileExists(File file)
+    public static File assertFileExists(File file)
     {
         if (file.isDirectory())
         {
@@ -44,8 +46,18 @@ public class FileUtils
                 }
             }
         }
+        return file;
     }
 
+    public static InputStream downloadFile(String urlString) throws IOException
+    {
+        URL url = new URL(urlString);
+
+        URLConnection conn = url.openConnection();
+        InputStream inStream = conn.getInputStream();
+        return inStream;
+    }
+    
     /**
      * 使用文件通道的方式复制文件
      *
@@ -98,11 +110,16 @@ public class FileUtils
      */
     public static final String fileToString(File file)
     {
+        return fileToString(file, null);
+    }
+    
+    public static final String fileToString(File file, String encoding)
+    {
         if (file.canRead() && file.isFile())
         {
             try
             {
-                return inputStream2String(new FileInputStream(file), null, 1, true);
+                return inputStream2String(new FileInputStream(file), encoding, 1, true);
             }
             catch (Exception e)
             {

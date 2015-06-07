@@ -7,6 +7,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.LinkedList;
 
 import ssq.utils.DirUtils;
 import ssq.utils.FileUtils;
@@ -14,7 +15,8 @@ import ssq.utils.Pair;
 
 public class QueryHistoryFrame extends TableFrame
 {
-    public static QueryHistoryFrame instance = null;
+    private static final long       serialVersionUID = 1L;
+    public static QueryHistoryFrame instance         = null;
     
     public static void showQueryHistory()
     {
@@ -32,22 +34,20 @@ public class QueryHistoryFrame extends TableFrame
     public QueryHistoryFrame()
     {
         statusLabel.setText("单击历史以打开结果");
-        //        statusPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-        //        statusPane.setPreferredSize(new Dimension(200, 20));
     }
 
     @Override
     public Pair<Object[][], Object[]> toTable() throws FileNotFoundException, IOException
     {
         final ArrayList<File> historyFiles = FileUtils.getFilteredListOf(new File(DirUtils.getWritableXxRoot("assets/query_history")), true, ".*");
-        ArrayList<String[]> data = new ArrayList<>();
+        LinkedList<String[]> data = new LinkedList<>();
         String[] names = new String[] { "时间", "回溯天数" };
-
+        
         for (File file : historyFiles)
         {
-            data.add(file.getName().split("\\.")[0].split("@"));
+            data.addFirst(file.getName().split("\\.")[0].split("@"));
         }
-
+        
         return new Pair<Object[][], Object[]>(data.toArray(new String[][] {}), names);
     }
 

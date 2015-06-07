@@ -334,7 +334,7 @@ public class ReflectTreeBuilder extends ReflectSemantic
     
     public enum ValueType implements Serializable
     {
-        opening, highest, lowest, closing, quantity;
+        opening, highest, closing, lowest, quantity, deal, scale;
     }
     
     public enum BinaryRuleOperator implements Serializable

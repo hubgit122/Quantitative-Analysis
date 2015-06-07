@@ -1,77 +1,81 @@
 package ssq.stock;
 
-import java.io.DataInputStream;
-import java.io.IOException;
+import java.io.Serializable;
+import java.util.Arrays;
 import java.util.Date;
 
 import ssq.stock.interpreter.ReflectTreeBuilder.ValueType;
 import ssq.utils.MathUtils;
 
-public class DateData
+public class DateData implements Serializable
 {
-    public int   date;
-    public int[] vals = new int[6]; //开 高 低 收 量 上次收盘
-    public float amountOfDeal;     //成交额
-    public float scale;
-
+    private static final long serialVersionUID = -2889383443934619874L;
+    public int                date;
+    private float[]           vals             = new float[7];         //开 高 收 低 量 额 复权
+                                                                        
     @SuppressWarnings("deprecation")
     public static Date numberToDate(int num)
     {
         return new Date(num / 10000 - 1900, num % 10000 / 100 - 1, num % 100);
     }
-    
+
     @SuppressWarnings("deprecation")
     public static int dateToNumber(Date date)
     {
-        return (date.getYear() * 100 + date.getMonth() + 1) * 100 + date.getDate();
+        return ((date.getYear() + 1900) * 100 + date.getMonth() + 1) * 100 + date.getDate();
     }
     
-    public DateData setScale(float scale)
+    @Override
+    public String toString()
     {
-        this.scale = scale;
-        return this;
+        return date + Arrays.asList(vals).toString();
     }
-
-    public DateData(int date, int k, int g, int d, int s, float qunt, int sum, float scale)
+    
+    public DateData(int date, float k, float g, float s, float d, int sum, float qunt, float scale)
     {
         this.date = date;
-        this.scale = scale;
-        
+
         int i = 0;
         vals[i++] = k;
         vals[i++] = g;
-        vals[i++] = d;
         vals[i++] = s;
-        amountOfDeal = qunt;
+        vals[i++] = d;
         vals[i++] = sum;
+        vals[i++] = qunt;
+        vals[i++] = scale;
+    }
+    
+    public DateData(int date, float[] vals)
+    {
+        this.date = date;
+        this.vals = vals;
     }
 
-    public int getScaledVal(ValueType type)
+    public float getVal(ValueType type)
     {
-        int index = type.ordinal();
-        if (index == 4)
+        return getVal(type.ordinal());
+    }
+
+    public float getScaledVal(ValueType type)
+    {
+        return getScaledVal(type.ordinal());
+    }
+    
+    public float getVal(int index)
+    {
+        if (index >= 4)
         {
-            return vals[4];
+            return vals[index];
         }
         else
         {
-            return MathUtils.round(vals[index] * scale);
+            return MathUtils.round(vals[index] / vals[6]);
         }
     }
-    
-    public static DateData getNext(DataInputStream in, float scale) throws IOException
+
+    public float getScaledVal(int index)
     {
-        int date = MathUtils.readLittleEndianInt(in);
-        int k = MathUtils.readLittleEndianInt(in);
-        int g = MathUtils.readLittleEndianInt(in);
-        int d = MathUtils.readLittleEndianInt(in);
-        int s = MathUtils.readLittleEndianInt(in);
-        float a = MathUtils.readLittleEndianFloat(in);
-        int sum = MathUtils.readLittleEndianInt(in);
-        int last = MathUtils.readLittleEndianInt(in);
-        
-        DateData result = new DateData(date, k, g, d, s, a, sum, scale);
-        
-        return result;
+        return vals[index];
     }
+    
 }
