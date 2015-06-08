@@ -23,18 +23,17 @@ public abstract class FrameWithStatus extends JFrame
     protected InputStream iniData;                   //某些超类可能需要使用的初始化输入流
     protected JScrollBar  scrollBar;
     protected JScrollPane statusPane;
-
+    
     public void setStatusText(String s)
     {
         statusLabel.setText(s);
-        update(getGraphics());
-
+        
         //        if (scrollBar.isVisible())
         //        {
         //            statusPane.setSize(statusPane.getWidth(), 40);
         //        }
     }
-    
+
     /**
      * 需要初始化数据的超类在构造时把初始化数据的InputStream传入本抽象基类的构造函数, 在超类的toTable方法里按需调用
      *
@@ -47,11 +46,11 @@ public abstract class FrameWithStatus extends JFrame
         initData();
         initListeners();
     }
-
+    
     abstract protected void initData();
-
+    
     abstract protected void initListeners();
-
+    
     @Override
     public void pack()
     {
@@ -59,7 +58,7 @@ public abstract class FrameWithStatus extends JFrame
         super.pack();
         setResizable(false);
     }
-
+    
     protected void initView()
     {
         setBackground(Color.WHITE);
@@ -67,15 +66,15 @@ public abstract class FrameWithStatus extends JFrame
         setLayout(new BorderLayout());
         statusLabel.setFont(GUI.SONGFONT_FONT);
         statusPane = new JScrollPane(statusLabel, ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-        
+
         scrollBar = new JScrollBar(Adjustable.HORIZONTAL);
         statusPane.setHorizontalScrollBar(scrollBar);
         statusPane.setWheelScrollingEnabled(true);
-
+        
         JPanel statusAndScroll = new JPanel(new BorderLayout());
         statusAndScroll.add(statusPane, BorderLayout.CENTER);
         statusAndScroll.add(scrollBar, BorderLayout.SOUTH);
-
+        
         add(statusAndScroll, BorderLayout.SOUTH);
         pack();
         setResizable(false);

@@ -6,13 +6,18 @@ import ssq.utils.Pair;
 
 public class StockList extends ArrayList<Pair<Integer, String>>
 {
-    private static final long serialVersionUID = -3451325083275362402L;
+    private static final long serialVersionUID = -4394026989859742527L;
     
     public StockList()
     {
         super(5000);
     }
 
+    public StockList(StockList stockList)
+    {
+        super(stockList);
+    }
+    
     /**
      *
      * @param ind

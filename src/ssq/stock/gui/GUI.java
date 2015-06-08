@@ -22,6 +22,7 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
+import ssq.stock.Stock;
 import ssq.stock.interpreter.Interpreter;
 import ssq.utils.DirUtils;
 import ssq.utils.FileUtils;
@@ -29,20 +30,20 @@ import ssq.utils.FileUtils;
 public class GUI extends FrameWithStatus
 {
     private static final String READY            = "查看参数是否正确, 并按开始";
-    
-    private static final long   serialVersionUID = 1L;
 
+    private static final long   serialVersionUID = 1L;
+    
     public static GUI           instance         = null;
     JLabel[]                    labels;
-    protected TextField[]       textFields;
+    public TextField[]          textFields;
     JButton[]                   buttons;
     public static final Font    SONGFONT_FONT    = new Font("宋体", Font.PLAIN, 16);
-
+    
     public static void main(String[] args)
     {
         new GUI();
     }
-
+    
     public static void statusText(String s)
     {
         if (GUI.instance != null)
@@ -50,17 +51,18 @@ public class GUI extends FrameWithStatus
             GUI.instance.setStatusText(s);
         }
     }
-    
+
     public GUI()
     {
         super(null);
         instance = this;
         setVisible(true);
     }
-
+    
     @Override
     protected void initData()
     {
+        restoreData();
         try
         {
             BufferedReader reader = new BufferedReader(new FileReader(new File(DirUtils.getXxRoot("assets"), "pref.txt")));
@@ -68,7 +70,7 @@ public class GUI extends FrameWithStatus
             {
                 textFields[i].setText(reader.readLine());
             }
-
+            
             try
             {
                 reader.close();
@@ -80,27 +82,27 @@ public class GUI extends FrameWithStatus
         catch (Exception e)
         {
             e.printStackTrace();
-            
+
             restoreData();
         }
     }
-
+    
     @Override
     protected void initListeners()
     {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
+        
         for (int i = 0; i < buttons.length; i++)
         {
             buttons[i].addMouseListener(listeners[i]);
         }
     }
-    
+
     public static GUI getInstance()
     {
         return instance;
     }
-    
+
     static private MouseListener[] listeners = new MouseListener[] {
                                              new MouseAdapter()
                                              {
@@ -204,6 +206,34 @@ public class GUI extends FrameWithStatus
                                              new MouseAdapter()
                                              {
                                                  @Override
+                                                 public void mouseClicked(MouseEvent e)
+                                                 {
+                                                     try
+                                                     {
+                                                         Stock.updateStocks();
+                                                     }
+                                                     catch (Exception e1)
+                                                     {
+                                                         e1.printStackTrace();
+                                                         statusText("执行出现异常" + e1.getLocalizedMessage());
+                                                     }
+                                                 }
+                                                 
+                                                 @Override
+                                                 public void mouseEntered(MouseEvent e)
+                                                 {
+                                                     statusText("更新股票数据, 可能需要较长时间");
+                                                 }
+                                                 
+                                                 @Override
+                                                 public void mouseExited(MouseEvent e)
+                                                 {
+                                                     statusText(READY);
+                                                 }
+                                             },
+                                             new MouseAdapter()
+                                             {
+                                                 @Override
                                                  public void mouseEntered(MouseEvent e)
                                                  {
                                                      statusText("开始分析");
@@ -243,7 +273,7 @@ public class GUI extends FrameWithStatus
                                                  }
                                              }
                                              };
-    
+
     private void disableButtons()
     {
         for (int i = 0; i < buttons.length; i++)
@@ -251,10 +281,10 @@ public class GUI extends FrameWithStatus
             JButton jButton = buttons[i];
             jButton.setEnabled(false);
         }
-        
+
         deleteListeners();
     }
-    
+
     private void enableButtons()
     {
         for (int i = 0; i < buttons.length; i++)
@@ -262,19 +292,19 @@ public class GUI extends FrameWithStatus
             JButton jButton = buttons[i];
             jButton.setEnabled(true);
         }
-
+        
         initListeners();
     }
-
+    
     private void restoreData()
     {
-        textFields[0].setText("min(350 ->1) < min(500 -> 351) && max(5 -> 1) > max(300 -> 6) && max(250 -> 1) < min(250 -> 1)  * 1.5 && max(250->30) *1.1 >  max(1->1)");
-        textFields[1].setText("d:/股票");
-        textFields[2].setText(String.valueOf(100));
-        textFields[3].setText(String.valueOf(50));
-        textFields[4].setText(String.valueOf(0));
+        textFields[0].setText("min(350 ->1) < min(500 -> 351) && max(5 -> 1) > max(300 -> 6) && max(250 -> 1) < min(250 -> 1)  * 2 && max(250->30) *1.1 >  max(1->1)");
+        textFields[1].setText(String.valueOf(100));
+        textFields[2].setText(String.valueOf(50));
+        textFields[3].setText(String.valueOf(0));
+        textFields[4].setText(String.valueOf(20));
     }
-
+    
     private void deleteListeners()
     {
         for (int i = 0; i < buttons.length; i++)
@@ -282,24 +312,24 @@ public class GUI extends FrameWithStatus
             buttons[i].removeMouseListener(listeners[i]);
         }
     }
-
+    
     @Override
     protected void initView()
     {
         super.initView();
-        
-        labels = new JLabel[] { new JLabel("选股公式"), new JLabel("最大列表长度"), new JLabel("最小接受的分值"), new JLabel("回溯天数") };
-        textFields = new TextField[] { new TextField(90), new TextField(90), new TextField(90), new TextField(90) };
-        buttons = new JButton[] { new JButton("保存设置"), new JButton("恢复默认设置"), new JButton("显示结果"), new JButton("调试选股公式"), new JButton("开始选股") };
 
+        labels = new JLabel[] { new JLabel("选股公式"), new JLabel("最大列表长度"), new JLabel("最小接受的分值"), new JLabel("回溯天数"), new JLabel("下载线程数") };
+        textFields = new TextField[] { new TextField(90), new TextField(90), new TextField(90), new TextField(90), new TextField(90) };
+        buttons = new JButton[] { new JButton("保存设置"), new JButton("恢复默认设置"), new JButton("显示结果"), new JButton("调试选股公式"), new JButton("更新股票数据"), new JButton("开始选股") };
+        
         setTitle("选股");
         setBackground(Color.WHITE);
         setLocation(200, 200);
-
-        JPanel main = new JPanel(new GridBagLayout());
         
-        GridBagConstraints gbc = new GridBagConstraints();
+        JPanel main = new JPanel(new GridBagLayout());
 
+        GridBagConstraints gbc = new GridBagConstraints();
+        
         gbc.gridheight = 1;
         gbc.weightx = 0;
         gbc.weighty = 0;
@@ -311,24 +341,24 @@ public class GUI extends FrameWithStatus
         for (int i = 0; i < labels.length; i++)
         {
             gbc.gridy++;
-            
+
             gbc.gridx = 0;
             gbc.gridwidth = 1;
             JLabel label = labels[i];
             label.setFont(SONGFONT_FONT);
-
+            
             main.add(label, gbc);
-
+            
             gbc.gridx = 1;
             gbc.gridwidth = GridBagConstraints.REMAINDER;
             main.add(textFields[i], gbc);
         }
-        
+
         gbc.gridy++;
         for (int i = 0; i < buttons.length; i++)
         {
             JButton button = buttons[i];
-            
+
             gbc.gridx = i;
             gbc.gridwidth = 1;
             button.setFont(SONGFONT_FONT);
@@ -338,9 +368,9 @@ public class GUI extends FrameWithStatus
             }
             main.add(button, gbc);
         }
-
+        
         add(main, BorderLayout.CENTER);
-
+        
         setStatusText(READY);
         pack();
     }

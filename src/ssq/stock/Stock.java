@@ -5,36 +5,48 @@ import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.lang.reflect.InvocationTargetException;
+import java.net.NoRouteToHostException;
 import java.net.SocketTimeoutException;
+import java.net.UnknownHostException;
 import java.util.LinkedList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
 
 import ssq.stock.gui.GUI;
 import ssq.utils.DirUtils;
 import ssq.utils.FileUtils;
 import ssq.utils.Pair;
 import ssq.utils.StringUtils;
+import ssq.utils.taskdistributer.Task;
+import ssq.utils.taskdistributer.TaskDistributor;
+import ssq.utils.taskdistributer.TaskList;
+import ssq.utils.taskdistributer.WorkThread;
 
 public class Stock implements Serializable
 {
     private static final long     serialVersionUID = 3937169104043760931L;
-    final public static StockList stockList        = new StockList();
+    
+    public static final StockList stockList        = new StockList();
     public static final String    stockListPath    = DirUtils.getXxRoot("assets/stockHistories");
-    static boolean                integral         = true;
+
     public boolean                isShangHai;
     public int                    number;
     public StockHistory           history;
     transient public String       name;
+
+    public static void test()
+    {
+        System.out.println("test");
+    }
 
     /**
      *
@@ -92,11 +104,6 @@ public class Stock implements Serializable
         try
         {
             readList();
-
-            if (JOptionPane.showConfirmDialog(null, "更新数据会花费大量的时间, 请保持网络畅通并关注状态条上的进度提示. ", "更新股票数据? ", JOptionPane.YES_NO_OPTION, JOptionPane.INFORMATION_MESSAGE) == JOptionPane.YES_OPTION)
-            {
-                updateStocks();
-            }
         }
         catch (Exception e)
         {
@@ -104,111 +111,227 @@ public class Stock implements Serializable
         }
     }
 
-    public static final String filter = "600.*|601.*|603.*|000.*|001.*|002.*|300.*";
+    public static void queryUpdateStock() throws Exception
+    {
+        if (JOptionPane.showConfirmDialog(null, "更新数据可能会花费大量的时间, 请保持网络畅通并关注状态条上的进度提示. ", "更新股票数据? ", JOptionPane.YES_NO_OPTION, JOptionPane.INFORMATION_MESSAGE) == JOptionPane.YES_OPTION)
+        {
+            updateStocks();
+        }
+    }
+
+    public static final String filter       = "600.*|601.*|603.*|000.*|001.*|002.*|300.*";
+    public static int          numOfThreads = 25;
 
     public static void updateStocks() throws Exception
     {
         try
         {
-            GUI.statusText("开始更新股票信息");
-
-            int numOfThreads = 1;
-            final LinkedList<DownloadException> exceptions = new LinkedList<>();
-            //            ArrayList<DownloadAndSave> threads = new ArrayList<>(numOfThreads);
-            int cnt = stockList.size();
-            
-            for (int i = 0; i < cnt; i += numOfThreads)
-            {
-                if (exceptions.isEmpty())
-                {
-                    //                    threads.clear();
-                    for (int j = 0; j < numOfThreads; j++)
-                    {
-                        int index = j + i;
-                        
-                        if (index < cnt)
-                        {
-                            final Stock stock = loadStock(stockList.get(index).getKey());
-                            GUI.statusText("正在更新 " + stock + ", 进度: " + 100.0 * i / cnt + "%");
-                            
-                            //                            threads.add(new DownloadAndSave(i + j)
-                            //                            {
-                            //                                @Override
-                            //                                public void run()
-                            //                                {
-                            while (true)
-                            {
-                                try
-                                {
-                                    //                                Stock stock = loadStock(stockList.get(index).getKey());
-                                    stock.update();
-                                    stock.save();
-                                    break;
-                                }
-                                catch (SocketTimeoutException e)
-                                {
-                                    Toolkit.getDefaultToolkit().beep();
-                                    e.printStackTrace();
-                                    synchronized (exceptions)
-                                    {
-                                        exceptions.add(new DownloadException(e, index));
-                                    }
-                                }
-                                catch (Exception e)
-                                {
-                                }
-                            }
-                            //                                }
-                            //                            });
-                            //                            threads.get(j).start();
-                        }
-                    }
-                    
-                    //                    for (int j = 0; j < threads.size(); j++)
-                    //                    {
-                    //                        threads.get(j).join();
-                    //                    }
-                }
-                else if (JOptionPane.showConfirmDialog(null, "请确保网络畅通后点击YES重试. ", "貌似断网了", JOptionPane.YES_NO_OPTION, JOptionPane.ERROR_MESSAGE) == JOptionPane.NO_OPTION)
-                {
-                    GUI.statusText("更新部分完成. 更新完成的股票数: " + exceptions.getFirst().index);
-                    break;
-                }
-                else
-                {
-                    for (DownloadException downloadException : exceptions)
-                    {
-                        i = Math.max(Math.min(i, downloadException.index) - numOfThreads, 0);
-                    }
-                    exceptions.clear();
-                }
-            }
-            
-            GUI.statusText("股票信息更新完毕");
+            numOfThreads = Integer.valueOf(GUI.getInstance().textFields[4].toString());
         }
         catch (Exception e)
         {
-            if (JOptionPane.showConfirmDialog(null, "如果需要联网更新股票名称并更新股票数据, 请先恢复网络再点击NO. ", "网络无法连接, 使用离线数据? ", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE) == JOptionPane.NO_OPTION)
-            {
-                updateStocks();
-            }
         }
+
+        GUI.statusText("开始更新股票信息");
+
+        final int cnt = stockList.size();
+
+        final TaskList taskList = new TaskList();
+        final TaskDistributor distributor = new TaskDistributor(taskList, numOfThreads, WorkThread.class)
+        {
+            private LinkedList<Exception> exceptions = new LinkedList<Exception>();
+
+            {
+                new Thread(new Runnable()
+                {
+                    @Override
+                    public void run()
+                    {
+                        while (exceptions != null)
+                        {
+                            try
+                            {
+                                Thread.sleep(1000);
+                            }
+                            catch (InterruptedException e)
+                            {
+                            }
+
+                            if (!exceptions.isEmpty())
+                            {
+                                int index = Integer.MAX_VALUE;
+                                
+                                synchronized (exceptions)
+                                {
+                                    for (Exception exception : exceptions)
+                                    {
+                                        index = Math.min(((DownloadException) exception).index, index);
+                                    }
+                                }
+                                
+                                Toolkit.getDefaultToolkit().beep();
+
+                                final int ind = index;
+                                try
+                                {
+                                    SwingUtilities.invokeAndWait(new Runnable()
+                                    {
+                                        @Override
+                                        public void run()
+                                        {
+                                            int msg = JOptionPane.showConfirmDialog(GUI.instance, "请确保网络畅通, 下载会自动开始. 点击NO终止本次下载. ", "貌似断网了", JOptionPane.YES_NO_OPTION, JOptionPane.ERROR_MESSAGE);
+                                            if (msg == JOptionPane.CLOSED_OPTION | msg == JOptionPane.NO_OPTION)
+                                            {
+                                                synchronized (taskList)
+                                                {
+                                                    for (Task task : taskList)
+                                                    {
+                                                        task.setFinished();
+                                                    }
+                                                }
+                                                
+                                                GUI.statusText("更新部分完成. 从" + stockList.get(ind) + "开始更新失败. ");
+                                            }
+                                        }
+                                    });
+                                }
+                                catch (InvocationTargetException e)
+                                {
+                                    e.printStackTrace();
+                                }
+                                catch (InterruptedException e)
+                                {
+                                    e.printStackTrace();
+                                }
+                                
+                                exceptions.clear();
+                            }
+                        }
+                    }
+                }).start();
+            }
+            
+            @Override
+            public void waitTasksDone()
+            {
+                super.waitTasksDone();
+                
+                exceptions = null;
+                
+                GUI.statusText("股票信息更新完毕");
+            }
+            
+            @Override
+            public synchronized Task getNext(int lastFinished)
+            {
+                if (lastFinished >= 0)
+                    GUI.statusText(lastFinished + "更新完毕, 进度: " + 100.0 * lastFinished / cnt + "%");
+
+                return super.getNext(lastFinished);
+            }
+
+            @Override
+            public void informException(Exception e)
+            {
+                synchronized (exceptions)
+                {
+                    exceptions.add(e);
+                }
+            }
+        };
+
+        for (int i = 0; i < cnt; i++)
+        {
+            taskList.add(new Task(i)
+            {
+                @Override
+                public void execute()
+                {
+                    Stock stock;
+                    try
+                    {
+                        stock = loadStock(stockList.get(getTaskId()).getKey());
+                    }
+                    catch (IOException e1)
+                    {
+                        e1.printStackTrace();
+                        return;
+                    }
+                    
+                    while (true)
+                    {
+                        if (getStatus() == 2)
+                        {
+                            break;
+                        }
+
+                        try
+                        {
+                            stock.update();
+                            break;
+                        }
+                        catch (UnknownHostException | NoRouteToHostException | SocketTimeoutException e)
+                        {
+                            if (getStatus() == 2)
+                            {
+                                break;
+                            }
+                            
+                            distributor.informException(new DownloadException(e, getTaskId()));
+                            try
+                            {
+                                Thread.sleep(1000);
+                            }
+                            catch (InterruptedException e1)
+                            {
+                            }
+                        }
+                        catch (Exception e2)
+                        {
+                        }
+                    }
+                    
+                    try
+                    {
+                        stock.save();
+                    }
+                    catch (IOException e)
+                    {
+                        distributor.informException(e);
+                    }
+                }
+            });
+        }
+
+        distributor.schedule();
     }
 
-    public static Stock loadStock(int index) throws FileNotFoundException, IOException
+    public static Stock loadStock(int index) throws IOException
     {
-        ObjectInputStream i = new ObjectInputStream(new BufferedInputStream(new FileInputStream(new File(stockListPath, Stock.pad(index)))));
         Stock result = null;
+        ObjectInputStream i = null;
+
         try
         {
+            i = new ObjectInputStream(new BufferedInputStream(new FileInputStream(new File("assets/stockHistories", Stock.pad(index)))));
             result = (Stock) i.readObject();
             result.reconstruct(stockList.getNameOfId(index));
         }
-        catch (ClassNotFoundException e)
+        catch (Exception e)
         {
-            e.printStackTrace();
+            result = new Stock(stockList.getNameOfId(index), index > 400000, index);
         }
-        i.close();
+        finally
+        {
+            try
+            {
+                i.close();
+            }
+            catch (Exception e)
+            {
+            }
+        }
+        
         return result;
     }
     
@@ -229,26 +352,23 @@ public class Stock implements Serializable
         }
     }
 
-    public static class DownloadAndSave extends Thread
-    {
-        int index;
-        
-        DownloadAndSave(int i)
-        {
-            index = i;
-        }
-    }
-    
     public void save() throws IOException
     {
-        ObjectOutputStream o = new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream(FileUtils.assertFileExists(new File(stockListPath, String.valueOf(pad(this.number)))))));
+        ObjectOutputStream o = new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream(FileUtils.assertFileExists(new File("assets/stockHistories", String.valueOf(pad(this.number)))))));
         o.writeObject(this);
         o.close();
     }
     
     private void update() throws IOException
     {
-        if (!history.isEmpty() || StringUtils.convertStreamToString(FileUtils.downloadFile("http://hq.sinajs.cn/list=s" + (isShangHai ? 'h' : 'z') + pad(number)), "gb2312").length() > 100)
+        try
+        {
+            if (!history.isEmpty() || StringUtils.convertStreamToString(FileUtils.downloadFile("http://hq.sinajs.cn/list=s" + (isShangHai ? 'h' : 'z') + pad(number)), "gb2312").length() > 100)
+            {
+                history.updateData();
+            }
+        }
+        catch (Exception e)
         {
             history.updateData();
         }
@@ -260,51 +380,63 @@ public class Stock implements Serializable
 
         try
         {
-            String url = "http://quote.eastmoney.com/stocklist.html";
-            tmp = StringUtils.convertStreamToString(FileUtils.downloadFile(url), "gb2312");
-            
             try
             {
-                FileWriter writer = new FileWriter(new File(DirUtils.getXxRoot("assets"), "stocklist.html"));
-                writer.write(tmp);
-                writer.close();
+                String url = "http://quote.eastmoney.com/stocklist.html";
+                tmp = StringUtils.convertStreamToString(FileUtils.downloadFile(url), "gb2312");
+                
+                int offset = tmp.indexOf("<div class=\"sltit\"><a name=\"sz\"/>深圳股票</div>");
+                
+                Pattern p = Pattern.compile("<li><a target=\"_blank\" href=\"http://quote\\.eastmoney\\.com/s.\\d{6}\\.html\">([^\\(]+)\\((\\d{6})\\)</a></li>");
+                
+                for (int place = 0; place < 2; place++)
+                {
+                    Matcher m = place == 1 ? p.matcher(tmp.substring(0, offset)) : p.matcher(tmp.substring(offset));
+                    
+                    while (m.find())
+                    {
+                        String num = m.group(2);
+                        
+                        if (num.matches(filter))
+                        {
+                            String name = m.group(1);
+                            Integer id = Integer.valueOf(num);
+                            
+                            int insertIndex = stockList.findInsertIndex(id);
+                            
+                            if (insertIndex >= 0)
+                            {
+                                stockList.add(insertIndex, new Pair<Integer, String>(id, name));
+                            }
+                        }
+                    }
+                }
+                
+                ObjectOutputStream o = new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream(new File(stockListPath, "list"))));
+                o.writeObject(stockList);
+                o.close();
             }
             catch (Exception e)
             {
+                JOptionPane.showMessageDialog(null, "连接股票列表服务器失败, 下面尝试上次缓存的结果. 也可以尝试重新连接网络并重启程序. ");
+                
+                try
+                {
+                    ObjectInputStream i = new ObjectInputStream(new BufferedInputStream(new FileInputStream(new File(stockListPath, "list"))));
+                    stockList.addAll((StockList) i.readObject());
+                    i.close();
+                }
+                catch (Exception e1)
+                {
+                }
+                
             }
+
         }
         catch (Exception e)
         {
-            JOptionPane.showMessageDialog(null, "连接股票列表服务器失败, 下面尝试上次缓存的结果. 也可以尝试重新连接网络并重启程序. ");
-            tmp = FileUtils.fileToString(new File(DirUtils.getXxRoot("assets"), "stocklist.html"), "gb2312");
-        }
-
-        int offset = tmp.indexOf("<div class=\"sltit\"><a name=\"sz\"/>深圳股票</div>");
-
-        Pattern p = Pattern.compile("<li><a target=\"_blank\" href=\"http://quote\\.eastmoney\\.com/s.\\d{6}\\.html\">([^\\(]+)\\((\\d{6})\\)</a></li>");
-
-        for (int place = 0; place < 2; place++)
-        {
-            Matcher m = place == 1 ? p.matcher(tmp.substring(0, offset)) : p.matcher(tmp.substring(offset));
-
-            while (m.find())
-            {
-                String num = m.group(2);
-                
-                if (num.matches(filter))
-                {
-                    String name = m.group(1);
-                    Integer id = Integer.valueOf(num);
-                    
-                    int insertIndex = stockList.findInsertIndex(id);
-                    
-                    if (insertIndex >= 0)
-                    {
-                        stockList.add(insertIndex, new Pair<Integer, String>(id, name));
-                    }
-                }
-            }
-
+            JOptionPane.showMessageDialog(null, "没有网络也没有缓存的股票列表, 程序初始化失败");
         }
     }
+    
 }
