@@ -26,23 +26,22 @@ import ssq.stock.interpreter.ReflectTreeBuilder.Expression;
 import ssq.stock.interpreter.ReflectTreeBuilder.RuleLevel;
 import ssq.stock.interpreter.ReflectTreeBuilder.Val;
 import ssq.utils.DirUtils;
-import ssq.utils.LogUtils;
 import ssq.utils.Pair;
 import ssq.utils.TreeNode;
 
 public class Interpreter extends Analyzer
 {
-    HashMap<Expression, Float> memory   = new HashMap<>();
+    HashMap<Val, Float>      memory   = new HashMap<>();
     
-    File                       outFile;
-    int                        maxInfo;
-    int                        backDays = 0;
-    float                      minGrade;
-    public RuleLevel           AST      = null;
-    String                     instruction;
-    String                     outputDir;
+    File                     outFile;
+    int                      maxInfo;
+    int                      backDays = 0;
+    float                    minGrade;
+    public RuleLevel         AST      = null;
+    String                   instruction;
+    String                   outputDir;
 
-    public static RuleParser   parser   = new RuleParser();
+    public static RuleParser parser   = new RuleParser();
     static
     {
         try
@@ -92,7 +91,6 @@ public class Interpreter extends Analyzer
     @Override
     public void run() throws Exception
     {
-        Stock.saveStockList();
         evals.clear();
         
         super.run();
@@ -107,26 +105,18 @@ public class Interpreter extends Analyzer
         outFile = new File(DirUtils.getXxRoot(outputDir), simpleDateFormat.format(new Date()) + "@" + backDays);
 
         print();
-        GUI.statusText("扫描结束, 请点击按钮查看结果");
-        LogUtils.logString("扫描结束, 请点击按钮查看结果", "进度信息", false);
     }
 
     @Override
     public void scan(Stock s)
     {
-        try
+        TreeNode<Float> result = evaluate(s, AST);
+        
+        if (result.getElement() >= minGrade)
         {
-            TreeNode<Float> result = evaluate(s, AST);
-
-            if (result.getElement() >= minGrade)
-            {
-                evals.add(new Pair<Integer, TreeNode<Float>>(s.number, result));
-            }
-            memory.clear();
+            evals.add(new Pair<Integer, TreeNode<Float>>(s.number, result));
         }
-        catch (Exception e)
-        {
-        }
+        memory.clear();
     }
     
     private TreeNode<Float> evaluate(Stock s, RuleLevel AST)
@@ -147,7 +137,17 @@ public class Interpreter extends Analyzer
                 {
                     TreeNode<Float> tmp = evaluate(s, ruleLevel);
                     result.addChildNode(tmp);
-                    grade *= tmp.getElement();
+
+                    float thisGrade = tmp.getElement();
+                    if (thisGrade >= 0)
+                    {
+                        grade *= thisGrade;
+                    }
+                    else
+                    {
+                        grade = -1f;
+                        break;
+                    }
                 }
             }
             else
@@ -158,35 +158,54 @@ public class Interpreter extends Analyzer
                 {
                     TreeNode<Float> tmp = evaluate(s, ruleLevel);
                     result.addChildNode(tmp);
-                    grade = Math.max(grade, tmp.getElement());
+
+                    float thisGrade = tmp.getElement();
+                    if (thisGrade >= 0)
+                    {
+                        grade = Math.max(grade, tmp.getElement());
+                    }
+                    else
+                    {
+                        grade = -1f;
+                        break;
+                    }
                 }
             }
             result.setElement(grade);
         }
         else
         {
-            AtomRule val = (AtomRule) AST;
-
-            float lExp = evaluate(s, val.lexpr), rExp = evaluate(s, val.rexpr);
-            int order = val.inequality.ordinal();
-
-            if (order < 2) // < or <=
+            try
             {
-                grade = saturate(rExp / lExp);
+                AtomRule val = (AtomRule) AST;
+                
+                float lExp = evaluate(s, val.lexpr), rExp = evaluate(s, val.rexpr);
+                int order = val.inequality.ordinal();
+                
+                if (order < 2) // < or <=
+                {
+                    grade = saturate(rExp / lExp);
+                }
+                else if (order > 2)
+                {
+                    grade = saturate(lExp / rExp);
+                }
+                else
+                {
+                    grade = Math.min(rExp / lExp, lExp / rExp);
+                }
+                grade = 1 - (1 - grade) * val.weight;
+                
+                result = new TreeNode<Float>(grade);
+                result.addChild(lExp);
+                result.addChild(rExp);
             }
-            else if (order > 2)
+            catch (Exception e)
             {
-                grade = saturate(lExp / rExp);
+                e.printStackTrace();
+                
+                return new TreeNode<Float>(-1f);
             }
-            else
-            {
-                grade = Math.min(rExp / lExp, lExp / rExp);
-            }
-            grade = 1 - (1 - grade) * val.weight;
-
-            result = new TreeNode<Float>(grade);
-            result.addChild(lExp);
-            result.addChild(rExp);
         }
 
         return result;
@@ -226,7 +245,7 @@ public class Interpreter extends Analyzer
             else
             {
                 Float f = memory.get(val);
-
+                
                 if (f != null)
                 {
                     return f;
@@ -234,18 +253,18 @@ public class Interpreter extends Analyzer
                 else
                 {
                     ArrayList<Float> args = new ArrayList<>();
-
+                    
                     for (Expression e : val.args)
                     {
                         args.add(evaluate(s, e));
                     }
-
+                    
                     args.add((float) backDays);
                     
                     float result = s.history.func(val.func, args, val.type, val.rest);
-
+                    
                     memory.put(val, result);
-
+                    
                     return result;
                 }
             }

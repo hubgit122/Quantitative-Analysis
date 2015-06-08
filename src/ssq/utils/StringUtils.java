@@ -4,21 +4,18 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.Reader;
-import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
-import java.io.Writer;
 import java.util.List;
 
 public class StringUtils
 {
     private static char[] hexDigits = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' };
-    
+
     public static boolean noContent(String s)
     {
         return s == null || s.trim().length() == 0;
     }
-    
+
     public static String getHex(byte[] data)
     {
         int j = data.length;
@@ -33,11 +30,32 @@ public class StringUtils
         return new String(str);
     }
     
+    public static String join(String d, float[] contents)
+    {
+        boolean flag = false;
+        StringBuilder sb = new StringBuilder();
+        
+        for (float o : contents)
+        {
+            if (flag)
+            {
+                sb.append(d);
+            }
+            else
+            {
+                flag = true;
+            }
+            
+            sb.append(o);
+        }
+        return sb.toString();
+    }
+    
     public static String join(String d, List<?> contents)
     {
         boolean flag = false;
         StringBuilder sb = new StringBuilder();
-
+        
         for (Object o : contents)
         {
             if (flag)
@@ -48,13 +66,13 @@ public class StringUtils
             {
                 flag = true;
             }
-
+            
             sb.append(o.toString());
         }
-        
+
         return sb.toString();
     }
-    
+
     private static int hex2Dec(char c)
     {
         if (c <= '9')
@@ -66,7 +84,7 @@ public class StringUtils
             return c - 'a' + 10;
         }
     }
-    
+
     /**
      *
      * @param s
@@ -79,16 +97,16 @@ public class StringUtils
             s = "0" + s;
         }
         s = s.toLowerCase();
-        
+
         byte[] result = new byte[s.length() >> 1];
-        
+
         for (int i = 0; i < result.length; i++)
         {
             result[i] = (byte) (hex2Dec(s.charAt(i << 1)) << 4 | hex2Dec(s.charAt((i << 1) + 1)));
         }
         return result;
     }
-    
+
     public static String getPaddedHex(long i, int len)
     {
         char[] str = new char[len];
@@ -99,7 +117,7 @@ public class StringUtils
         }
         return new String(str);
     }
-    
+
     public static byte[] encode(String s, String format) throws UnsupportedEncodingException
     {
         if (format == null)
@@ -108,15 +126,15 @@ public class StringUtils
         }
         return s.getBytes(format);
     }
-    
+
     public static String pad(String s, int l, boolean addSpacesToTail)
     {
         String result;
-        
+
         if (s.length() < l)
         {
             StringBuffer sb = new StringBuffer(l);
-            
+
             if (addSpacesToTail)
             {
                 sb.append(s);
@@ -125,7 +143,7 @@ public class StringUtils
             {
                 sb.append(' ');
             }
-            
+
             if (!addSpacesToTail)
             {
                 sb.append(s);
@@ -140,10 +158,10 @@ public class StringUtils
         {
             result = s;
         }
-        
+
         return result;
     }
-    
+
     public static String decode(byte[] bytes, String format) throws UnsupportedEncodingException
     {
         if (format == null)
@@ -152,7 +170,7 @@ public class StringUtils
         }
         return new String(bytes, format);
     }
-    
+
     public static final String changeFirstCharacterToLowerCase(String upperCaseStr)
     {
         char[] chars = new char[1];
@@ -164,54 +182,31 @@ public class StringUtils
         }
         return upperCaseStr;
     }
-    
-    public static String convertStreamToString(InputStream is, String encoding)
+
+    public static String convertStreamToString(InputStream is, String encoding) throws UnsupportedEncodingException
     {
         if (encoding == null)
         {
             encoding = "UTF-8";
         }
-        /*
-         * To convert the InputStream to String we use the Reader.read(char[]
-         * buffer) method. We iterate until the Reader return -1 which means there's
-         * no more data to read. We use the StringWriter class to produce the
-         * string.
-         */
+
         if (is != null)
         {
-            Writer writer = new StringWriter();
-            
-            char[] buffer = new char[1024];
+            BufferedReader in = new BufferedReader(new InputStreamReader(is, encoding));
+            StringBuffer buffer = new StringBuffer();
+            String line = "";
             try
             {
-                Reader reader = new BufferedReader(new InputStreamReader(is, encoding));
-                int n;
-                while ((n = reader.read(buffer)) != -1)
+                while ((line = in.readLine()) != null)
                 {
-                    writer.write(buffer, 0, n);
+                    buffer.append(line);
                 }
-            }
-            catch (UnsupportedEncodingException e)
-            {
-                e.printStackTrace();
             }
             catch (IOException e)
             {
                 e.printStackTrace();
             }
-            finally
-            {
-                try
-                {
-                    is.close();
-                }
-                catch (IOException e)
-                {
-                    e.printStackTrace();
-                }
-            }
-            
-            return writer.toString();
+            return buffer.toString();
         }
         else
         {

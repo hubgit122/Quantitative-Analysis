@@ -1,5 +1,6 @@
 package ssq.stock;
 
+import java.awt.Toolkit;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -11,7 +12,8 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
-import java.util.ArrayList;
+import java.net.SocketTimeoutException;
+import java.util.LinkedList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -20,17 +22,19 @@ import javax.swing.JOptionPane;
 import ssq.stock.gui.GUI;
 import ssq.utils.DirUtils;
 import ssq.utils.FileUtils;
+import ssq.utils.Pair;
 import ssq.utils.StringUtils;
 
 public class Stock implements Serializable
 {
-    private static final long  serialVersionUID = 3937169104043760931L;
-    public static StockList    stockList        = new StockList();
-    public static final String stockListPath    = DirUtils.getXxRoot("assets/stockHistories");
-    public boolean             isShangHai;
-    public int                 number;
-    public StockHistory        history;
-    transient public String    name;
+    private static final long     serialVersionUID = 3937169104043760931L;
+    final public static StockList stockList        = new StockList();
+    public static final String    stockListPath    = DirUtils.getXxRoot("assets/stockHistories");
+    static boolean                integral         = true;
+    public boolean                isShangHai;
+    public int                    number;
+    public StockHistory           history;
+    transient public String       name;
 
     /**
      *
@@ -87,16 +91,11 @@ public class Stock implements Serializable
     {
         try
         {
-            File out = new File(stockListPath);
-            if (!out.exists())
-            {
-                out.createNewFile();
-            }
-            
             readList();
+
             if (JOptionPane.showConfirmDialog(null, "更新数据会花费大量的时间, 请保持网络畅通并关注状态条上的进度提示. ", "更新股票数据? ", JOptionPane.YES_NO_OPTION, JOptionPane.INFORMATION_MESSAGE) == JOptionPane.YES_OPTION)
             {
-                refreshList();
+                updateStocks();
             }
         }
         catch (Exception e)
@@ -107,90 +106,81 @@ public class Stock implements Serializable
 
     public static final String filter = "600.*|601.*|603.*|000.*|001.*|002.*|300.*";
 
-    public static void refreshList() throws Exception
+    public static void updateStocks() throws Exception
     {
         try
         {
             GUI.statusText("开始更新股票信息");
-            int cnt = 0;
-            String tmp;
 
-            try
-            {
-                String url = "http://quote.eastmoney.com/stocklist.html";
-                tmp = StringUtils.convertStreamToString(FileUtils.downloadFile(url), "gb2312");
-                
-                try
-                {
-                    FileWriter writer = new FileWriter(new File(DirUtils.getXxRoot("assets"), "stocklist.html"));
-                    writer.write(tmp);
-                    writer.close();
-                }
-                catch (Exception e)
-                {
-                }
-            }
-            catch (Exception e)
-            {
-                JOptionPane.showMessageDialog(null, "连接股票列表服务器失败, 下面尝试上次缓存的结果. 也可以尝试重新连接网络并重启程序. ");
-                tmp = FileUtils.fileToString(new File(DirUtils.getXxRoot("assets"), "stocklist.html"), "gb2312");
-            }
-
-            int offset = tmp.indexOf("<div class=\"sltit\"><a name=\"sz\"/>深圳股票</div>");
-
-            Pattern p = Pattern.compile("<li><a target=\"_blank\" href=\"http://quote\\.eastmoney\\.com/s.\\d{6}\\.html\">([^\\(]+)\\((\\d{6})\\)</a></li>");
+            int numOfThreads = 1;
+            final LinkedList<DownloadException> exceptions = new LinkedList<>();
+            //            ArrayList<DownloadAndSave> threads = new ArrayList<>(numOfThreads);
+            int cnt = stockList.size();
             
-            mainloop: for (int place = 0; place < 2; place++)
+            for (int i = 0; i < cnt; i += numOfThreads)
             {
-                Matcher m = place == 1 ? p.matcher(tmp.substring(0, offset)) : p.matcher(tmp.substring(offset));
-                while (m.find())
+                if (exceptions.isEmpty())
                 {
-                    String num = m.group(2);
-
-                    if (num.matches(filter))
+                    //                    threads.clear();
+                    for (int j = 0; j < numOfThreads; j++)
                     {
-                        cnt++;
+                        int index = j + i;
                         
-                        if (cnt < 2408)
+                        if (index < cnt)
                         {
-                            continue;
-                        }
-                        
-                        String name = m.group(1);
-                        Integer id = Integer.valueOf(num);
-
-                        int insertIndex = stockList.findInsertIndex(id);
-
-                        Stock thisStock = null;
-                        while (true)
-                        {
-                            try
+                            final Stock stock = loadStock(stockList.get(index).getKey());
+                            GUI.statusText("正在更新 " + stock + ", 进度: " + 100.0 * i / cnt + "%");
+                            
+                            //                            threads.add(new DownloadAndSave(i + j)
+                            //                            {
+                            //                                @Override
+                            //                                public void run()
+                            //                                {
+                            while (true)
                             {
-                                if (insertIndex < 0)
+                                try
                                 {
-                                    thisStock = stockList.get(-insertIndex - 1);
-                                    thisStock.update(name);
+                                    //                                Stock stock = loadStock(stockList.get(index).getKey());
+                                    stock.update();
+                                    stock.save();
+                                    break;
                                 }
-                                else
+                                catch (SocketTimeoutException e)
                                 {
-                                    thisStock = new Stock(name, place == 1, id);
-                                    stockList.add(insertIndex, thisStock);
+                                    Toolkit.getDefaultToolkit().beep();
+                                    e.printStackTrace();
+                                    synchronized (exceptions)
+                                    {
+                                        exceptions.add(new DownloadException(e, index));
+                                    }
                                 }
-                                break;
-                            }
-                            catch (Exception e)
-                            {
-                                if (JOptionPane.showConfirmDialog(null, "请确保网络畅通后点击YES重试. ", "貌似断网了", JOptionPane.YES_NO_OPTION, JOptionPane.ERROR_MESSAGE) == JOptionPane.NO_OPTION)
+                                catch (Exception e)
                                 {
-                                    GUI.statusText("更新部分完成. 更新完成的股票数: " + cnt);
-                                    break mainloop;
                                 }
                             }
+                            //                                }
+                            //                            });
+                            //                            threads.get(j).start();
                         }
-                        
-                        GUI.statusText("更新完成的股票数: " + cnt);
-                        saveStock(thisStock);
                     }
+                    
+                    //                    for (int j = 0; j < threads.size(); j++)
+                    //                    {
+                    //                        threads.get(j).join();
+                    //                    }
+                }
+                else if (JOptionPane.showConfirmDialog(null, "请确保网络畅通后点击YES重试. ", "貌似断网了", JOptionPane.YES_NO_OPTION, JOptionPane.ERROR_MESSAGE) == JOptionPane.NO_OPTION)
+                {
+                    GUI.statusText("更新部分完成. 更新完成的股票数: " + exceptions.getFirst().index);
+                    break;
+                }
+                else
+                {
+                    for (DownloadException downloadException : exceptions)
+                    {
+                        i = Math.max(Math.min(i, downloadException.index) - numOfThreads, 0);
+                    }
+                    exceptions.clear();
                 }
             }
             
@@ -198,72 +188,123 @@ public class Stock implements Serializable
         }
         catch (Exception e)
         {
-            if (JOptionPane.showConfirmDialog(null, "如果需要联网更新股票名称并更新股票数据, 请先恢复网络再点击NO. ", "更新股票历史数据时网络无法连接, 使用脱机数据? ", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE) == JOptionPane.NO_OPTION)
+            if (JOptionPane.showConfirmDialog(null, "如果需要联网更新股票名称并更新股票数据, 请先恢复网络再点击NO. ", "网络无法连接, 使用离线数据? ", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE) == JOptionPane.NO_OPTION)
             {
-                refreshList();
+                updateStocks();
             }
         }
-        finally
-        {
-            saveStockList();
-        }
-    }
-    
-    private static void saveStock(Stock stock) throws IOException, FileNotFoundException
-    {
-        ObjectOutputStream o = new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream(FileUtils.assertFileExists(new File(stockListPath, String.valueOf(pad(stock.number)))))));
-        o.writeObject(stock);
-        o.close();
     }
 
-    public static void saveStockList()
+    public static Stock loadStock(int index) throws FileNotFoundException, IOException
     {
+        ObjectInputStream i = new ObjectInputStream(new BufferedInputStream(new FileInputStream(new File(stockListPath, Stock.pad(index)))));
+        Stock result = null;
         try
         {
-            for (Stock stock : stockList)
-            {
-                saveStock(stock);
-            }
+            result = (Stock) i.readObject();
+            result.reconstruct(stockList.getNameOfId(index));
         }
-        catch (IOException e)
+        catch (ClassNotFoundException e)
         {
-            // TODO 自动生成的 catch 块
             e.printStackTrace();
+        }
+        i.close();
+        return result;
+    }
+    
+    private void reconstruct(String name)
+    {
+        this.name = name;
+        this.history.reconstruct(this);
+    }
+    
+    public static class DownloadException extends Exception
+    {
+        int index;
+        
+        public DownloadException(Exception exception, int index)
+        {
+            super(exception);
+            this.index = index;
+        }
+    }
+
+    public static class DownloadAndSave extends Thread
+    {
+        int index;
+        
+        DownloadAndSave(int i)
+        {
+            index = i;
         }
     }
     
-    private void update(String name) throws IOException
+    public void save() throws IOException
     {
-        this.name = name;
-        history.updateData(this);
+        ObjectOutputStream o = new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream(FileUtils.assertFileExists(new File(stockListPath, String.valueOf(pad(this.number)))))));
+        o.writeObject(this);
+        o.close();
     }
-
+    
+    private void update() throws IOException
+    {
+        if (!history.isEmpty() || StringUtils.convertStreamToString(FileUtils.downloadFile("http://hq.sinajs.cn/list=s" + (isShangHai ? 'h' : 'z') + pad(number)), "gb2312").length() > 100)
+        {
+            history.updateData();
+        }
+    }
+    
     public static void readList()
     {
-        ArrayList<File> tmp = FileUtils.getFilteredListOf(new File(stockListPath), true, filter);
-        
-        for (File file : tmp)
+        String tmp;
+
+        try
         {
-            ObjectInputStream i = null;
+            String url = "http://quote.eastmoney.com/stocklist.html";
+            tmp = StringUtils.convertStreamToString(FileUtils.downloadFile(url), "gb2312");
+            
             try
             {
-                i = new ObjectInputStream(new BufferedInputStream(new FileInputStream(file)));
-                stockList.add((Stock) i.readObject());
+                FileWriter writer = new FileWriter(new File(DirUtils.getXxRoot("assets"), "stocklist.html"));
+                writer.write(tmp);
+                writer.close();
             }
-            catch (Exception e1)
+            catch (Exception e)
             {
-                e1.printStackTrace();
             }
-            finally
+        }
+        catch (Exception e)
+        {
+            JOptionPane.showMessageDialog(null, "连接股票列表服务器失败, 下面尝试上次缓存的结果. 也可以尝试重新连接网络并重启程序. ");
+            tmp = FileUtils.fileToString(new File(DirUtils.getXxRoot("assets"), "stocklist.html"), "gb2312");
+        }
+
+        int offset = tmp.indexOf("<div class=\"sltit\"><a name=\"sz\"/>深圳股票</div>");
+
+        Pattern p = Pattern.compile("<li><a target=\"_blank\" href=\"http://quote\\.eastmoney\\.com/s.\\d{6}\\.html\">([^\\(]+)\\((\\d{6})\\)</a></li>");
+
+        for (int place = 0; place < 2; place++)
+        {
+            Matcher m = place == 1 ? p.matcher(tmp.substring(0, offset)) : p.matcher(tmp.substring(offset));
+
+            while (m.find())
             {
-                try
+                String num = m.group(2);
+                
+                if (num.matches(filter))
                 {
-                    i.close();
-                }
-                catch (Exception e)
-                {
+                    String name = m.group(1);
+                    Integer id = Integer.valueOf(num);
+                    
+                    int insertIndex = stockList.findInsertIndex(id);
+                    
+                    if (insertIndex >= 0)
+                    {
+                        stockList.add(insertIndex, new Pair<Integer, String>(id, name));
+                    }
                 }
             }
+
         }
     }
 }

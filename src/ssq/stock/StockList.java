@@ -2,7 +2,9 @@ package ssq.stock;
 
 import java.util.ArrayList;
 
-public class StockList extends ArrayList<Stock>
+import ssq.utils.Pair;
+
+public class StockList extends ArrayList<Pair<Integer, String>>
 {
     private static final long serialVersionUID = -3451325083275362402L;
     
@@ -30,7 +32,7 @@ public class StockList extends ArrayList<Stock>
             while (end >= start)
             {
                 int mid = (start + end) / 2;
-                int midNum = get(mid).number;
+                int midNum = get(mid).getKey();
 
                 if (ind < midNum)
                 {
@@ -51,9 +53,9 @@ public class StockList extends ArrayList<Stock>
     }
     
     @Override
-    public boolean add(Stock e)
+    public boolean add(Pair<Integer, String> e)
     {
-        int index = findInsertIndex(e.number);
+        int index = findInsertIndex(e.getKey());
 
         if (index >= 0)
         {
@@ -70,5 +72,19 @@ public class StockList extends ArrayList<Stock>
     public boolean contains(Object o)
     {
         return (o instanceof Stock && findInsertIndex(((Stock) o).number) < 0);
+    }
+
+    public String getNameOfId(int id)
+    {
+        int index = findInsertIndex(id);
+
+        if (index < 0)
+        {
+            return get(-index - 1).getValue();
+        }
+        else
+        {
+            return null;
+        }
     }
 }
