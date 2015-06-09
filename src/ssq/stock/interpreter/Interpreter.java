@@ -32,7 +32,7 @@ import ssq.utils.TreeNode;
 public class Interpreter extends Analyzer
 {
     HashMap<Val, Float>      memory   = new HashMap<>();
-    
+
     File                     outFile;
     int                      maxInfo;
     int                      backDays = 0;
@@ -40,7 +40,7 @@ public class Interpreter extends Analyzer
     public RuleLevel         AST      = null;
     String                   instruction;
     String                   outputDir;
-
+    
     public static RuleParser parser   = new RuleParser();
     static
     {
@@ -53,7 +53,7 @@ public class Interpreter extends Analyzer
             e.printStackTrace();
         }
     }
-    
+
     /**
      * 初始化选股器
      *
@@ -66,7 +66,7 @@ public class Interpreter extends Analyzer
     {
         this(max, min, days, insturction, "assets/query_history", Stock.filter);
     }
-    
+
     /**
      * 初始化规定了输出文件和股票代码过滤器的选股器
      *
@@ -79,7 +79,7 @@ public class Interpreter extends Analyzer
     public Interpreter(Integer max, Float min, Integer days, String insturction, String outDir, String filter) throws IOException
     {
         super(filter);
-        
+
         this.outputDir = outDir;
         this.maxInfo = max;
         this.minGrade = min / 100;
@@ -87,57 +87,58 @@ public class Interpreter extends Analyzer
         this.instruction = insturction;
         AST = parser.getRoot(instruction);
     }
-    
+
     @Override
     public void run() throws Exception
     {
         evals.clear();
-        
-        super.run();
 
+        super.run();
+        
         if (evals.size() > maxInfo)
         {
             evals = new Evaluations(evals.subList(0, maxInfo));
         }
-
+        
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy年MM月dd日 HH时mm分ss秒");
-
+        
         outFile = new File(DirUtils.getXxRoot(outputDir), simpleDateFormat.format(new Date()) + "@" + backDays);
-
+        
         print();
     }
-
+    
     @Override
     public void scan(Stock s)
     {
         TreeNode<Float> result = evaluate(s, AST);
-        
+
         if (result.getElement() >= minGrade)
         {
-            evals.add(new Pair<Integer, TreeNode<Float>>(s.number, result));
+            evals.add(new Pair<Integer, TreeNode<Float>>(s.getNumber(), result));
         }
         memory.clear();
     }
-    
+
     private TreeNode<Float> evaluate(Stock s, RuleLevel AST)
     {
         float grade;
         TreeNode<Float> result;
-        
+
         if (AST instanceof CompositeRule)
         {
             CompositeRule expr = (CompositeRule) AST;
             result = new TreeNode<Float>(-1f);
-
+            boolean error = false;
+            
             if (expr.op == BinaryRuleOperator.AND)
             {
                 grade = 1f;
-                
+
                 for (RuleLevel ruleLevel : expr.rules)
                 {
                     TreeNode<Float> tmp = evaluate(s, ruleLevel);
                     result.addChildNode(tmp);
-
+                    
                     float thisGrade = tmp.getElement();
                     if (thisGrade >= 0)
                     {
@@ -145,20 +146,19 @@ public class Interpreter extends Analyzer
                     }
                     else
                     {
-                        grade = -1f;
-                        break;
+                        error = true;
                     }
                 }
             }
             else
             {
                 grade = 0f;
-                
+
                 for (RuleLevel ruleLevel : expr.rules)
                 {
                     TreeNode<Float> tmp = evaluate(s, ruleLevel);
                     result.addChildNode(tmp);
-
+                    
                     float thisGrade = tmp.getElement();
                     if (thisGrade >= 0)
                     {
@@ -166,22 +166,21 @@ public class Interpreter extends Analyzer
                     }
                     else
                     {
-                        grade = -1f;
-                        break;
+                        error = true;
                     }
                 }
             }
-            result.setElement(grade);
+            result.setElement(error ? -1 : grade);
         }
         else
         {
             try
             {
                 AtomRule val = (AtomRule) AST;
-                
+
                 float lExp = evaluate(s, val.lexpr), rExp = evaluate(s, val.rexpr);
                 int order = val.inequality.ordinal();
-                
+
                 if (order < 2) // < or <=
                 {
                     grade = saturate(rExp / lExp);
@@ -195,7 +194,7 @@ public class Interpreter extends Analyzer
                     grade = Math.min(rExp / lExp, lExp / rExp);
                 }
                 grade = 1 - (1 - grade) * val.weight;
-                
+
                 result = new TreeNode<Float>(grade);
                 result.addChild(lExp);
                 result.addChild(rExp);
@@ -203,14 +202,14 @@ public class Interpreter extends Analyzer
             catch (Exception e)
             {
                 e.printStackTrace();
-                
+
                 return new TreeNode<Float>(-1f);
             }
         }
-
+        
         return result;
     }
-
+    
     private static float saturate(float f)
     {
         if (f > 1f)
@@ -226,7 +225,7 @@ public class Interpreter extends Analyzer
             return f;
         }
     }
-
+    
     private float evaluate(Stock s, Expression expr)
     {
         if (expr instanceof BiExpression)
@@ -237,7 +236,7 @@ public class Interpreter extends Analyzer
         else
         { // Val
             Val val = (Val) expr;
-
+            
             if (val.isFloat)
             {
                 return ((Val) expr).val;
@@ -245,7 +244,7 @@ public class Interpreter extends Analyzer
             else
             {
                 Float f = memory.get(val);
-                
+
                 if (f != null)
                 {
                     return f;
@@ -253,24 +252,24 @@ public class Interpreter extends Analyzer
                 else
                 {
                     ArrayList<Float> args = new ArrayList<>();
-                    
+
                     for (Expression e : val.args)
                     {
                         args.add(evaluate(s, e));
                     }
-                    
+
                     args.add((float) backDays);
-                    
+
                     float result = s.history.func(val.func, args, val.type, val.rest);
-                    
+
                     memory.put(val, result);
-                    
+
                     return result;
                 }
             }
         }
     }
-
+    
     private void print() throws IOException
     {
         ObjectOutputStream o = new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream(outFile)));
@@ -283,7 +282,7 @@ public class Interpreter extends Analyzer
             e.printStackTrace();
             GUI.statusText(e.getLocalizedMessage());
         }
-
+        
         try
         {
             o.close();
@@ -292,24 +291,24 @@ public class Interpreter extends Analyzer
         {
         }
     }
-
+    
     public static class Evaluations extends LinkedList<Pair<Integer, TreeNode<Float>>> implements Serializable
     {
         private static final long serialVersionUID = 1L;
-
+        
         public Evaluations(List<Pair<Integer, TreeNode<Float>>> subList)
         {
             super(subList);
         }
-
+        
         public Evaluations()
         {
         }
-        
+
         @Override
         public boolean add(Pair<Integer, TreeNode<Float>> e)
         {
-
+            
             if (this.size() == 0)
             {
                 addFirst(e);
@@ -319,11 +318,11 @@ public class Interpreter extends Analyzer
                 addFirst(e);
                 return true;
             }
-
+            
             for (ListIterator<Pair<Integer, TreeNode<Float>>> iterator = listIterator(); iterator.hasNext();)
             {
                 Pair<Integer, TreeNode<Float>> node = iterator.next();
-
+                
                 if (e.getValue().getElement() > node.getValue().getElement())
                 {
                     iterator.previous();
@@ -331,11 +330,11 @@ public class Interpreter extends Analyzer
                     return true;
                 }
             }
-
+            
             addLast(e);
             return true;
         };
     }
-
+    
     public Evaluations evals = new Evaluations();
 }
