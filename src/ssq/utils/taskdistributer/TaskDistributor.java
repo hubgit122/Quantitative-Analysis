@@ -16,12 +16,12 @@ public class TaskDistributor
     private int            size         = -1;
     int                    toBeRunIndex = 0; //指针之前的都是分配过的任务(可能运行失败过并被要求重复运行)
     LinkedList<WorkThread> threads;
-    
+
     public static void main(String[] args)
     {
         int numOfThreads = 5;
-        final int cnt = 552;
-        
+        final int cnt = 55;
+
         TaskList taskList = new TaskList();
         final TaskDistributor distributor = new TaskDistributor(taskList, numOfThreads, WorkThread.class)
         {
@@ -29,17 +29,17 @@ public class TaskDistributor
             public synchronized Task getNext(int lastFinished)
             {
                 System.out.println('\t' + getProgressString());
-
+                
                 return super.getNext(lastFinished);
             }
-            
+
             @Override
             public void informException(Exception e)
             {
                 super.informException(e);
             }
         };
-        
+
         for (int i = 0; i < cnt; i++)
         {
             taskList.add(new Task(i)
@@ -48,8 +48,8 @@ public class TaskDistributor
                 public void execute()
                 {
                     super.execute();
-                    int tmp = new Random().nextInt(5000);
-
+                    int tmp = new Random().nextInt(500);
+                    
                     if (tmp > 2000)
                     {
                         distributor.abort(getTaskId());
@@ -72,33 +72,33 @@ public class TaskDistributor
                 }
             });
         }
-        
+
         distributor.schedule();
         distributor.waitTasksDone();
     }
-
+    
     public String getProgressString()
     {
         StringBuilder sb = new StringBuilder();
         String progress = String.valueOf(getProgress());
         progress = progress.substring(0, Math.min(5, progress.length()));
-        
-        sb.append("running: ").append(running).append(" , finished: ").append(finished).append(", aborted: ").append(aborted).append(", progress: ").append(size > 0 ? progress : "-1").append('%');
 
+        sb.append("running: ").append(running).append(" , finished: ").append(finished).append(", aborted: ").append(aborted).append(", progress: ").append(size > 0 ? progress : "-1").append('%');
+        
         return sb.toString();
     }
-
+    
     public float getProgress()
     {
         return 100.0f * (finished + aborted) / size;
     }
-
+    
     public TaskDistributor(TaskList taskList, int capacity, Class<? extends WorkThread> threadClass)
     {
         this.taskList = taskList;
         this.threads = new LinkedList<>();
         this.size = taskList.size();
-        
+
         for (int i = 0; i < capacity; i++)
         {
             WorkThread tmp;
@@ -116,17 +116,17 @@ public class TaskDistributor
             threads.add(tmp);
         }
     }
-    
+
     public void schedule()
     {
         resetStatus();
-        
+
         for (WorkThread thread : threads)
         {
             thread.start();
         }
     }
-    
+
     public void resetStatus()
     {
         size = taskList.size();
@@ -134,17 +134,17 @@ public class TaskDistributor
         finished = 0;
         aborted = 0;
     }
-    
+
     public Task getNext(int lastFinished)
     {
         synchronized (this)
         {
             finish(lastFinished);
-            
+
             return getNext();
         }
     }
-    
+
     public Task getNext()
     {
         synchronized (this)
@@ -160,12 +160,12 @@ public class TaskDistributor
                     return task;
                 }
             }
-            
+
             toBeRunIndex = size;
             return null;
         }
     }
-    
+
     public void finish(int lastFinished)
     {
         synchronized (this)
@@ -173,7 +173,7 @@ public class TaskDistributor
             if (lastFinished >= 0)
             {
                 Task task = taskList.get(lastFinished);
-                
+
                 if (task.getStatus() == Task.RUNNING)
                 {
                     finished++;
@@ -183,7 +183,7 @@ public class TaskDistributor
             }
         }
     }
-    
+
     /**
      *
      * @param taskid
@@ -194,7 +194,7 @@ public class TaskDistributor
         synchronized (this)
         {
             Task task = taskList.get(taskid);
-            
+
             if (task.getStatus() == Task.RUNNING)
             {
                 running--;
@@ -203,7 +203,7 @@ public class TaskDistributor
             }
         }
     }
-
+    
     /**
      * 就绪或运行状态的程序可以被abort, 已完成的不可以.
      *
@@ -215,25 +215,25 @@ public class TaskDistributor
         {
             Task task = taskList.get(taskid);
             int status = task.getStatus();
-
+            
             if (status != Task.FINISHED)
             {
                 aborted++;
-
+                
                 if (status == Task.RUNNING)
                 {
                     running--;
                 }
-
+                
                 task.onAborted();
             }
         }
     }
-
+    
     public void informException(Exception e)
     {
     }
-
+    
     public void waitTasksDone()
     {
         for (WorkThread thread : threads)

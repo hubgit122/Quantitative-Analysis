@@ -6,47 +6,82 @@ import ssq.stock.Stock;
 import ssq.stock.gui.GUI;
 import ssq.utils.LogUtils;
 import ssq.utils.Pair;
+import ssq.utils.taskdistributer.Task;
+import ssq.utils.taskdistributer.TaskDistributor;
+import ssq.utils.taskdistributer.TaskList;
+import ssq.utils.taskdistributer.WorkThread;
 
 public abstract class Analyzer
 {
     public final String filter;
-
+    
     public Analyzer()
     {
         filter = Stock.filter;
     }
-
+    
     public Analyzer(String filter)
     {
         this.filter = filter;
     }
-
+    
     public void run() throws Exception
     {
         GUI.statusText("开始分析");
         LogUtils.logString("开始分析", "进度信息", false);
         
+        TaskList taskList = new TaskList();
+        TaskDistributor distributor = new TaskDistributor(taskList, 10, WorkThread.class)
+        {
+            @Override
+            public Task getNext(int lastFinished)
+            {
+                Task result = super.getNext(lastFinished);
+                GUI.statusText(getProgressString());
+                return result;
+            }
+        };
+        
         int i = 0;
-
+        
         for (Pair<Integer, String> pair : Stock.stockList)
         {
-            Stock stock = Stock.loadStock(pair.getKey());
-            
+            final Stock stock = Stock.loadStock(pair.getKey());
+
             if (!stock.getNumberString().matches(filter))
             {
                 continue;
             }
-            scan(stock);
-            
-            if (++i % 100 == 0) //每扫描1000支可能的股票更新显示
+
+            taskList.add(new Task(i++)
             {
-                GUI.statusText("扫描总数: " + i + ", 扫描百分比: " + (100.0 * i / Stock.stockList.size()));
-                LogUtils.logString("扫描总数: " + i + ", 扫描百分比: " + (100.0 * i / Stock.stockList.size()), "进度信息", false);
-            }
+                @Override
+                public void execute()
+                {
+                    try
+                    {
+                        scan(stock);
+                    }
+                    catch (IOException e)
+                    {
+                        e.printStackTrace();
+                    }
+                }
+            });
         }
-        GUI.statusText("扫描结束, 请点击按钮查看结果");
-        LogUtils.logString("扫描结束, 请点击按钮查看结果", "进度信息", false);
+
+        distributor.schedule();
+        distributor.waitTasksDone();
+
+        GUI.statusText("扫描结束");
+        LogUtils.logString("扫描结束", "进度信息", false);
     }
     
+    /**
+     * 要有多线程安全
+     *
+     * @param stock
+     * @throws IOException
+     */
     abstract public void scan(Stock stock) throws IOException;
 }

@@ -31,8 +31,6 @@ import ssq.utils.TreeNode;
 
 public class Interpreter extends Analyzer
 {
-    HashMap<Val, Float>      memory   = new HashMap<>();
-
     File                     outFile;
     int                      maxInfo;
     int                      backDays = 0;
@@ -110,16 +108,20 @@ public class Interpreter extends Analyzer
     @Override
     public void scan(Stock s)
     {
-        TreeNode<Float> result = evaluate(s, AST);
+        HashMap<Val, Float> memory = new HashMap<>();
+        TreeNode<Float> result = evaluate(s, AST, memory);
 
         if (result.getElement() >= minGrade)
         {
-            evals.add(new Pair<Integer, TreeNode<Float>>(s.getNumber(), result));
+            synchronized (evals)
+            {
+                evals.add(new Pair<Integer, TreeNode<Float>>(s.getNumber(), result));
+            }
         }
         memory.clear();
     }
 
-    private TreeNode<Float> evaluate(Stock s, RuleLevel AST)
+    private TreeNode<Float> evaluate(Stock s, RuleLevel AST, HashMap<Val, Float> memory)
     {
         float grade;
         TreeNode<Float> result;
@@ -136,7 +138,7 @@ public class Interpreter extends Analyzer
 
                 for (RuleLevel ruleLevel : expr.rules)
                 {
-                    TreeNode<Float> tmp = evaluate(s, ruleLevel);
+                    TreeNode<Float> tmp = evaluate(s, ruleLevel, memory);
                     result.addChildNode(tmp);
                     
                     float thisGrade = tmp.getElement();
@@ -156,7 +158,7 @@ public class Interpreter extends Analyzer
 
                 for (RuleLevel ruleLevel : expr.rules)
                 {
-                    TreeNode<Float> tmp = evaluate(s, ruleLevel);
+                    TreeNode<Float> tmp = evaluate(s, ruleLevel, memory);
                     result.addChildNode(tmp);
                     
                     float thisGrade = tmp.getElement();
@@ -178,7 +180,7 @@ public class Interpreter extends Analyzer
             {
                 AtomRule val = (AtomRule) AST;
 
-                float lExp = evaluate(s, val.lexpr), rExp = evaluate(s, val.rexpr);
+                float lExp = evaluate(s, val.lexpr, memory), rExp = evaluate(s, val.rexpr, memory);
                 int order = val.inequality.ordinal();
 
                 if (order < 2) // < or <=
@@ -226,12 +228,12 @@ public class Interpreter extends Analyzer
         }
     }
     
-    private float evaluate(Stock s, Expression expr)
+    private float evaluate(Stock s, Expression expr, HashMap<Val, Float> memory)
     {
         if (expr instanceof BiExpression)
         {
             BiExpression biExpr = (BiExpression) expr;
-            return biExpr.operator.doOp(evaluate(s, biExpr.lExpression), evaluate(s, biExpr.rExpression));
+            return biExpr.operator.doOp(evaluate(s, biExpr.lExpression, memory), evaluate(s, biExpr.rExpression, memory));
         }
         else
         { // Val
@@ -255,7 +257,7 @@ public class Interpreter extends Analyzer
 
                     for (Expression e : val.args)
                     {
-                        args.add(evaluate(s, e));
+                        args.add(evaluate(s, e, memory));
                     }
 
                     args.add((float) backDays);

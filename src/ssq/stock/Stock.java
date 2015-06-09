@@ -121,14 +121,6 @@ public class Stock implements Serializable
         }
     }
     
-    public static void queryUpdateStock() throws Exception
-    {
-        if (JOptionPane.showConfirmDialog(null, "更新数据可能会花费大量的时间, 请保持网络畅通并关注状态条上的进度提示. ", "更新股票数据? ", JOptionPane.YES_NO_OPTION, JOptionPane.INFORMATION_MESSAGE) == JOptionPane.YES_OPTION)
-        {
-            updateStocks();
-        }
-    }
-    
     public static final String filter       = "600.*|601.*|603.*|000.*|001.*|002.*|300.*";
     public static int          numOfThreads = 25;
     
@@ -162,61 +154,68 @@ public class Stock implements Serializable
                         {
                             try
                             {
+                                if (!exceptions.isEmpty())
+                                {
+                                    int index = Integer.MAX_VALUE;
+                                    
+                                    synchronized (exceptions)
+                                    {
+                                        for (Exception exception : exceptions)
+                                        {
+                                            index = Math.min(((DownloadException) exception).index, index);
+                                        }
+                                    }
+                                    
+                                    Toolkit.getDefaultToolkit().beep();
+                                    
+                                    final int ind = index;
+                                    try
+                                    {
+                                        SwingUtilities.invokeAndWait(new Runnable()
+                                        {
+                                            @Override
+                                            public void run()
+                                            {
+                                                int msg = JOptionPane.showConfirmDialog(GUI.instance, "请确保网络畅通, 下载会自动开始. 点击NO终止本次下载. ", "貌似断网了", JOptionPane.YES_NO_OPTION, JOptionPane.ERROR_MESSAGE);
+                                                if (msg == JOptionPane.CLOSED_OPTION | msg == JOptionPane.NO_OPTION)
+                                                {
+                                                    synchronized (taskList)
+                                                    {
+                                                        for (Task task : taskList)
+                                                        {
+                                                            abort(task.getTaskId());
+                                                        }
+                                                    }
+                                                    
+                                                    GUI.statusText("更新部分完成. 从" + stockList.get(ind) + "开始更新失败. ");
+                                                }
+                                            }
+                                        });
+                                    }
+                                    catch (InvocationTargetException e)
+                                    {
+                                        e.printStackTrace();
+                                    }
+                                    catch (InterruptedException e)
+                                    {
+                                        e.printStackTrace();
+                                    }
+                                    
+                                    exceptions.clear();
+                                }
+                            }
+                            catch (NullPointerException e)
+                            {
+                            }
+
+                            try
+                            {
                                 Thread.sleep(1000);
                             }
                             catch (InterruptedException e)
                             {
                             }
                             
-                            if (!exceptions.isEmpty())
-                            {
-                                int index = Integer.MAX_VALUE;
-
-                                synchronized (exceptions)
-                                {
-                                    for (Exception exception : exceptions)
-                                    {
-                                        index = Math.min(((DownloadException) exception).index, index);
-                                    }
-                                }
-
-                                Toolkit.getDefaultToolkit().beep();
-                                
-                                final int ind = index;
-                                try
-                                {
-                                    SwingUtilities.invokeAndWait(new Runnable()
-                                    {
-                                        @Override
-                                        public void run()
-                                        {
-                                            int msg = JOptionPane.showConfirmDialog(GUI.instance, "请确保网络畅通, 下载会自动开始. 点击NO终止本次下载. ", "貌似断网了", JOptionPane.YES_NO_OPTION, JOptionPane.ERROR_MESSAGE);
-                                            if (msg == JOptionPane.CLOSED_OPTION | msg == JOptionPane.NO_OPTION)
-                                            {
-                                                synchronized (taskList)
-                                                {
-                                                    for (Task task : taskList)
-                                                    {
-                                                        abort(task.getTaskId());
-                                                    }
-                                                }
-
-                                                GUI.statusText("更新部分完成. 从" + stockList.get(ind) + "开始更新失败. ");
-                                            }
-                                        }
-                                    });
-                                }
-                                catch (InvocationTargetException e)
-                                {
-                                    e.printStackTrace();
-                                }
-                                catch (InterruptedException e)
-                                {
-                                    e.printStackTrace();
-                                }
-
-                                exceptions.clear();
-                            }
                         }
                     }
                 }).start();
@@ -235,10 +234,10 @@ public class Stock implements Serializable
             @Override
             public Task getNext(int lastFinished)
             {
+                Task result = super.getNext(lastFinished);
                 if (lastFinished >= 0)
                     GUI.statusText(stockList.get(lastFinished) + "更新完毕, 进度: " + getProgress() + "%");
-                
-                return super.getNext(lastFinished);
+                return result;
             }
             
             @Override
@@ -283,7 +282,7 @@ public class Stock implements Serializable
                         }
                         catch (UnknownHostException | NoRouteToHostException | SocketTimeoutException e)
                         {
-                            if (getStatus() == 2)
+                            if ((getStatus() & Task.FINISHED) != 0)
                             {
                                 break;
                             }
@@ -315,6 +314,15 @@ public class Stock implements Serializable
         }
         
         distributor.schedule();
+        
+        new Thread()
+        {
+            @Override
+            public void run()
+            {
+                distributor.waitTasksDone();
+            };
+        }.start();
     }
     
     public static Stock loadStock(int index) throws IOException
@@ -374,7 +382,9 @@ public class Stock implements Serializable
     {
         try
         {
-            if (!history.isEmpty() || StringUtils.convertStreamToString(FileUtils.downloadFile("http://hq.sinajs.cn/list=s" + (isShangHai ? 'h' : 'z') + pad(number)), "gb2312").length() > 100)
+            String tmp = queryLatest();
+            
+            if (tmp.length() > 100 && !tmp.endsWith(",-2\";"))
             {
                 history.updateData();
             }
@@ -383,6 +393,11 @@ public class Stock implements Serializable
         {
             history.updateData();
         }
+    }
+
+    String queryLatest() throws IOException
+    {
+        return StringUtils.convertStreamToString(FileUtils.downloadFile("http://hq.sinajs.cn/list=" + getCode()), "gb2312");
     }
 
     public static void readList()

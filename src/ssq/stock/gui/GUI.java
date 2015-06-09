@@ -20,6 +20,7 @@ import java.util.Calendar;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
 import ssq.stock.Stock;
@@ -103,19 +104,31 @@ public class GUI extends FrameWithStatus
         return instance;
     }
 
+    static class MyMouseAdapter extends MouseAdapter
+    {
+        String textString;
+
+        @Override
+        public void mouseEntered(MouseEvent e)
+        {
+            textString = instance.statusLabel.getText();
+        }
+        
+        @Override
+        public void mouseExited(MouseEvent e)
+        {
+            statusText(textString);
+        }
+    }
+
     static private MouseListener[] listeners = new MouseListener[] {
-                                             new MouseAdapter()
+                                             new MyMouseAdapter()
                                              {
                                                  @Override
                                                  public void mouseEntered(MouseEvent e)
                                                  {
+                                                     super.mouseEntered(e);
                                                      statusText("保存设置到文件");
-                                                 }
-                                                 
-                                                 @Override
-                                                 public void mouseExited(MouseEvent e)
-                                                 {
-                                                     statusText(READY);
                                                  }
                                                  
                                                  @Override
@@ -143,18 +156,13 @@ public class GUI extends FrameWithStatus
                                                      }
                                                  }
                                              },
-                                             new MouseAdapter()
+                                             new MyMouseAdapter()
                                              {
                                                  @Override
                                                  public void mouseEntered(MouseEvent e)
                                                  {
+                                                     super.mouseEntered(e);
                                                      statusText("恢复成默认设置");
-                                                 }
-                                                 
-                                                 @Override
-                                                 public void mouseExited(MouseEvent e)
-                                                 {
-                                                     statusText(READY);
                                                  }
                                                  
                                                  @Override
@@ -163,7 +171,7 @@ public class GUI extends FrameWithStatus
                                                      GUI.getInstance().restoreData();
                                                  }
                                              },
-                                             new MouseAdapter()
+                                             new MyMouseAdapter()
                                              {
                                                  @Override
                                                  public void mouseClicked(MouseEvent e)
@@ -174,16 +182,11 @@ public class GUI extends FrameWithStatus
                                                  @Override
                                                  public void mouseEntered(MouseEvent e)
                                                  {
+                                                     super.mouseEntered(e);
                                                      statusText("显示选股历史");
                                                  }
-                                                 
-                                                 @Override
-                                                 public void mouseExited(MouseEvent e)
-                                                 {
-                                                     statusText(READY);
-                                                 }
                                              },
-                                             new MouseAdapter()
+                                             new MyMouseAdapter()
                                              {
                                                  @Override
                                                  public void mouseClicked(MouseEvent e)
@@ -194,23 +197,21 @@ public class GUI extends FrameWithStatus
                                                  @Override
                                                  public void mouseEntered(MouseEvent e)
                                                  {
+                                                     super.mouseEntered(e);
                                                      statusText("打开一个调试窗口, 调试各原子公式");
                                                  }
-                                                 
-                                                 @Override
-                                                 public void mouseExited(MouseEvent e)
-                                                 {
-                                                     statusText(READY);
-                                                 }
                                              },
-                                             new MouseAdapter()
+                                             new MyMouseAdapter()
                                              {
                                                  @Override
                                                  public void mouseClicked(MouseEvent e)
                                                  {
                                                      try
                                                      {
-                                                         Stock.updateStocks();
+                                                         if (JOptionPane.showConfirmDialog(null, "更新数据可能会花费大量的时间, 请保持网络畅通并关注状态条上的进度提示. ", "更新股票数据? ", JOptionPane.YES_NO_OPTION, JOptionPane.INFORMATION_MESSAGE) == JOptionPane.YES_OPTION)
+                                                         {
+                                                             Stock.updateStocks();
+                                                         }
                                                      }
                                                      catch (Exception e1)
                                                      {
@@ -222,27 +223,17 @@ public class GUI extends FrameWithStatus
                                                  @Override
                                                  public void mouseEntered(MouseEvent e)
                                                  {
+                                                     super.mouseEntered(e);
                                                      statusText("更新股票数据, 可能需要较长时间");
                                                  }
-                                                 
-                                                 @Override
-                                                 public void mouseExited(MouseEvent e)
-                                                 {
-                                                     statusText(READY);
-                                                 }
                                              },
-                                             new MouseAdapter()
+                                             new MyMouseAdapter()
                                              {
                                                  @Override
                                                  public void mouseEntered(MouseEvent e)
                                                  {
+                                                     super.mouseEntered(e);
                                                      statusText("开始分析");
-                                                 }
-                                                 
-                                                 @Override
-                                                 public void mouseExited(MouseEvent e)
-                                                 {
-                                                     statusText(READY);
                                                  }
                                                  
                                                  @Override
