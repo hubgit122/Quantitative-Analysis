@@ -2,9 +2,7 @@ package ssq.stock;
 
 import java.util.ArrayList;
 
-import ssq.utils.Pair;
-
-public class StockList extends ArrayList<Pair<Integer, String>>
+public class StockList extends ArrayList<IDNamePair>
 {
     private static final long serialVersionUID = -4394026989859742527L;
 
@@ -58,7 +56,7 @@ public class StockList extends ArrayList<Pair<Integer, String>>
     }
 
     @Override
-    public boolean add(Pair<Integer, String> e)
+    public boolean add(IDNamePair e)
     {
         int index = findInsertIndex(e.getKey());
         

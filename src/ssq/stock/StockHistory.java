@@ -23,7 +23,7 @@ public class StockHistory extends ArrayList<DateData>
 {
     private static final long serialVersionUID = -5527331443161318429L;
     transient Stock           stock;
-    
+
     public StockHistory(Stock stock)
     {
         this.stock = stock;
@@ -31,26 +31,11 @@ public class StockHistory extends ArrayList<DateData>
 
     public void updateData() throws IOException
     {
-        Date now = Calendar.getInstance().getTime();
-        int lastAvaliableDate = -1;
+        int lastStoredDate = getLastStoredDate();
         
-        if (now.getHours() < 15)
-        {
-            now.setTime(now.getTime() - 24 * 3600 * 1000);
-        }
-        lastAvaliableDate = DateData.dateToNumber(now);
+        Date lastDownloadableDate = getLastDownloadableDate();
         
-        int lastStoredDate;
-        try
-        {
-            lastStoredDate = get(size() - 1).date;
-        }
-        catch (IndexOutOfBoundsException e)
-        {
-            lastStoredDate = -1;
-        }
-        
-        if (lastStoredDate == lastAvaliableDate)
+        if (lastStoredDate == DateData.dateToNumber(lastDownloadableDate))
         {
             return;
         }
@@ -59,9 +44,9 @@ public class StockHistory extends ArrayList<DateData>
 
         Pattern p = Pattern.compile("[^\\d]*([-\\d.]*)");
         
-        for (int year = lastStoredDate == -1 ? 2010 : nextDateToStore.getYear() + 1900; year <= now.getYear() + 1900; year++)
+        for (int year = lastStoredDate == -1 ? 2010 : nextDateToStore.getYear() + 1900; year <= lastDownloadableDate.getYear() + 1900; year++)
         {
-            for (int season = lastStoredDate == -1 ? 1 : (nextDateToStore.getMonth() + 3) / 3; season <= (year == now.getYear() + 1900 ? (now.getMonth() + 3) / 3 : 4); season++)
+            for (int season = lastStoredDate == -1 ? 1 : (nextDateToStore.getMonth() + 3) / 3; season <= (year == lastDownloadableDate.getYear() + 1900 ? (lastDownloadableDate.getMonth() + 3) / 3 : 4); season++)
             {
                 LinkedList<DateData> tmp = new LinkedList<>();
                 
@@ -103,6 +88,31 @@ public class StockHistory extends ArrayList<DateData>
                 addAll(tmp);
             }
         }
+    }
+
+    public Date getLastDownloadableDate()
+    {
+        Date lastDownloadableDate = Calendar.getInstance().getTime();
+        
+        if (lastDownloadableDate.getHours() < 19)
+        {
+            lastDownloadableDate.setTime(lastDownloadableDate.getTime() - 24 * 3600 * 1000);
+        }
+        return lastDownloadableDate;
+    }
+
+    public int getLastStoredDate()
+    {
+        int lastStoredDate;
+        try
+        {
+            lastStoredDate = get(size() - 1).date;
+        }
+        catch (IndexOutOfBoundsException e)
+        {
+            lastStoredDate = -1;
+        }
+        return lastStoredDate;
     }
     
     private static int parseDate(String dateString)

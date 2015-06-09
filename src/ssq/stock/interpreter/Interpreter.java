@@ -118,6 +118,7 @@ public class Interpreter extends Analyzer
                 evals.add(new Pair<Integer, TreeNode<Float>>(s.getNumber(), result));
             }
         }
+        memory.clear();
     }
     
     private TreeNode<Float> evaluate(Stock s, RuleLevel AST, HashMap<Val, Float> memory)
@@ -202,7 +203,7 @@ public class Interpreter extends Analyzer
             }
             catch (Exception e)
             {
-                e.printStackTrace();
+                //                e.printStackTrace();
                 
                 return new TreeNode<Float>(-1f);
             }

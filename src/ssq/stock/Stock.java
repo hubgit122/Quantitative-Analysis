@@ -14,6 +14,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.net.NoRouteToHostException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
+import java.text.SimpleDateFormat;
 import java.util.LinkedList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -24,7 +25,6 @@ import javax.swing.SwingUtilities;
 import ssq.stock.gui.GUI;
 import ssq.utils.DirUtils;
 import ssq.utils.FileUtils;
-import ssq.utils.Pair;
 import ssq.utils.StringUtils;
 import ssq.utils.taskdistributer.Task;
 import ssq.utils.taskdistributer.TaskDistributor;
@@ -383,8 +383,14 @@ public class Stock implements Serializable
         try
         {
             String tmp = queryLatest();
-            
-            if (tmp.length() > 100 && !tmp.endsWith(",-2\";"))
+
+            SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+
+            if (tmp.length() < 100 || tmp.endsWith(",-2\";") || tmp.contains(format.format(DateData.numberToDate(history.getLastStoredDate()))))
+            {
+                return;
+            }
+            else
             {
                 history.updateData();
             }
@@ -432,7 +438,7 @@ public class Stock implements Serializable
 
                             if (insertIndex >= 0)
                             {
-                                stockList.add(insertIndex, new Pair<Integer, String>(id, name));
+                                stockList.add(insertIndex, new IDNamePair(id, name));
                             }
                         }
                     }
