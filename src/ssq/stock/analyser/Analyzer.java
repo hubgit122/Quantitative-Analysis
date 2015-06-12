@@ -49,26 +49,24 @@ public abstract class Analyzer
         {
             final Stock stock = Stock.loadStock(pair.getKey());
             
-            if (!stock.getNumberString().matches(filter))
+            if (stock.getNumberString().matches(filter))
             {
-                continue;
-            }
-            
-            taskList.add(new Task(i++)
-            {
-                @Override
-                public void execute()
+                taskList.add(new Task(i++)
                 {
-                    try
+                    @Override
+                    public void execute()
                     {
-                        scan(stock);
+                        try
+                        {
+                            scan(stock);
+                        }
+                        catch (IOException e)
+                        {
+                            e.printStackTrace();
+                        }
                     }
-                    catch (IOException e)
-                    {
-                        e.printStackTrace();
-                    }
-                }
-            });
+                });
+            }
         }
         
         distributor.schedule();

@@ -10,6 +10,16 @@ import fri.patterns.interpreter.parsergenerator.semantics.ReflectSemantic;
 
 public class ReflectTreeBuilder extends ReflectSemantic
 {
+    public Object S_ruleExpr(Object expr, Object sharp)
+    {
+        if (sharp.equals("#"))
+        {
+            ((CompositeRule) expr).includeStop = true;
+        }
+        
+        return expr;
+    }
+
     public Object ruleExpr(Object rule)
     {
         CompositeRule result = new CompositeRule();
@@ -183,12 +193,19 @@ public class ReflectTreeBuilder extends ReflectSemantic
 
     public static class RuleLevel extends Node implements Serializable
     {
+        
+        /**
+         *
+         */
+        private static final long serialVersionUID = -1075654820087511925L;
     }
 
     public static class CompositeRule extends RuleLevel implements Serializable
     {
-        public LinkedList<RuleLevel> rules = new LinkedList<>();
+        private static final long    serialVersionUID = -5567129804228371086l;
+        public LinkedList<RuleLevel> rules            = new LinkedList<>();
         public BinaryRuleOperator    op;
+        public boolean               includeStop      = false;
 
         @Override
         public String toString()
@@ -204,9 +221,13 @@ public class ReflectTreeBuilder extends ReflectSemantic
 
     public static class AtomRule extends RuleLevel implements Serializable
     {
-        Expression lexpr, rexpr;
-        Inequality inequality;
-        float      weight = 1f;
+        /**
+         *
+         */
+        private static final long serialVersionUID = 1038702250641700807L;
+        Expression                lexpr, rexpr;
+        Inequality                inequality;
+        float                     weight           = 1f;
         
         @Override
         public String toString()
@@ -223,6 +244,11 @@ public class ReflectTreeBuilder extends ReflectSemantic
 
     public static abstract class Expression extends Node implements Serializable
     {
+        /**
+         *
+         */
+        private static final long serialVersionUID = 310430098436939269L;
+        
         @Override
         public abstract int hashCode();
 
@@ -232,8 +258,12 @@ public class ReflectTreeBuilder extends ReflectSemantic
     
     public static class BiExpression extends Expression implements Serializable
     {
-        public BinaryOperator operator;
-        public Expression     lExpression, rExpression;
+        /**
+         *
+         */
+        private static final long serialVersionUID = -4850927040255836742L;
+        public BinaryOperator     operator;
+        public Expression         lExpression, rExpression;
 
         @Override
         public int hashCode()
@@ -264,13 +294,17 @@ public class ReflectTreeBuilder extends ReflectSemantic
 
     public static class Val extends Expression implements Serializable
     {
-        boolean          isFloat = true;
-        float            val;
+        /**
+         *
+         */
+        private static final long serialVersionUID = 1436937159336231672L;
+        boolean                   isFloat          = true;
+        float                     val;
 
-        String           func;
-        List<Expression> args;
-        boolean          rest    = true;
-        ValueType        type    = ValueType.closing;
+        String                    func;
+        List<Expression>          args;
+        boolean                   rest             = true;
+        ValueType                 type             = ValueType.closing;
         
         @Override
         public int hashCode()

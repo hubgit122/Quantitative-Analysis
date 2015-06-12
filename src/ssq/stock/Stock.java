@@ -12,7 +12,6 @@ import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
 import java.net.NoRouteToHostException;
-import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.text.SimpleDateFormat;
 import java.util.LinkedList;
@@ -42,6 +41,7 @@ public class Stock implements Serializable
     private int                   number;
     public StockHistory           history;
     transient public String       name;
+    transient boolean             isStop           = false;
     
     /**
      *
@@ -270,7 +270,7 @@ public class Stock implements Serializable
 
                     while (true)
                     {
-                        if (getStatus() == 2)
+                        if (getStatus() == Task.ABROTED)
                         {
                             break;
                         }
@@ -280,7 +280,7 @@ public class Stock implements Serializable
                             stock.update();
                             break;
                         }
-                        catch (UnknownHostException | NoRouteToHostException | SocketTimeoutException e)
+                        catch (UnknownHostException | NoRouteToHostException e)
                         {
                             if ((getStatus() & Task.FINISHED) != 0)
                             {
@@ -390,18 +390,14 @@ public class Stock implements Serializable
             {
                 return;
             }
-            else
-            {
-                history.updateData();
-            }
         }
         catch (Exception e)
         {
-            history.updateData();
         }
+        history.updateData();
     }
 
-    String queryLatest() throws IOException
+    public String queryLatest() throws IOException
     {
         return StringUtils.convertStreamToString(FileUtils.downloadFile("http://hq.sinajs.cn/list=" + getCode()), "gb2312");
     }

@@ -10,12 +10,12 @@ public class StockList extends ArrayList<IDNamePair>
     {
         super(5000);
     }
-    
+
     public StockList(StockList stockList)
     {
         super(stockList);
     }
-
+    
     /**
      *
      * @param ind
@@ -25,7 +25,7 @@ public class StockList extends ArrayList<IDNamePair>
     {
         int start = 0;
         int end = size() - 1;
-
+        
         if (end == -1)
         {
             return 0;
@@ -36,7 +36,7 @@ public class StockList extends ArrayList<IDNamePair>
             {
                 int mid = (start + end) / 2;
                 int midNum = get(mid).getKey();
-                
+
                 if (ind < midNum)
                 {
                     end = mid - 1;
@@ -50,16 +50,16 @@ public class StockList extends ArrayList<IDNamePair>
                     return -(mid + 1);
                 }
             }
-            
+
             return start;
         }
     }
-
+    
     @Override
     public boolean add(IDNamePair e)
     {
         int index = findInsertIndex(e.getKey());
-        
+
         if (index >= 0)
         {
             super.add(index, e);
@@ -70,17 +70,17 @@ public class StockList extends ArrayList<IDNamePair>
             return false;
         }
     }
-
+    
     @Override
     public boolean contains(Object o)
     {
         return (o instanceof Stock && findInsertIndex(((Stock) o).getNumber()) < 0);
     }
-    
+
     public String getNameOfId(int id)
     {
         int index = findInsertIndex(id);
-        
+
         if (index < 0)
         {
             return get(-index - 1).getValue();

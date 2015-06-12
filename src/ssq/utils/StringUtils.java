@@ -183,7 +183,7 @@ public class StringUtils
         return upperCaseStr;
     }
     
-    public static String convertStreamToString(InputStream is, String encoding) throws UnsupportedEncodingException
+    public static String convertStreamToString(InputStream is, String encoding) throws IOException
     {
         if (encoding == null)
         {
@@ -195,16 +195,9 @@ public class StringUtils
             BufferedReader in = new BufferedReader(new InputStreamReader(is, encoding));
             StringBuffer buffer = new StringBuffer();
             String line = "";
-            try
+            while ((line = in.readLine()) != null)
             {
-                while ((line = in.readLine()) != null)
-                {
-                    buffer.append(line);
-                }
-            }
-            catch (IOException e)
-            {
-                e.printStackTrace();
+                buffer.append(line);
             }
 
             try
