@@ -35,6 +35,8 @@ import ssq.utils.FileUtils;
 
 public class GUI extends FrameWithStatus
 {
+    private static final String DEFAULT_FORMULA  = "min(350 ->1) < min(500 -> 351) && max(5 -> 1) > max(300 -> 6) && max(250 -> 1) < min(250 -> 1)  * 2 && max(250->30) *1.1 >  max(1->1)";
+    
     private static final String BACK_DAYS        = "backDays";
     
     private static final long   serialVersionUID = 1L;
@@ -44,7 +46,7 @@ public class GUI extends FrameWithStatus
     private static final String BACK_BY_DATE     = "backByDate";
     private static final String MIN_GRADE        = "minGrade";
     private static final String LIST_SIZE        = "listSize";
-    private static final String FOMULAR          = "fomular";
+    private static final String FORMULA          = "fomular";
     
     private static final String READY            = "查看参数是否正确, 并按开始";
 
@@ -76,13 +78,53 @@ public class GUI extends FrameWithStatus
         fromJson();
         setVisible(true);
     }
-    
+
+    private void fillInDefaultVals()
+    {
+        if (!object.containsKey(FORMULA))
+        {
+            object.put(FORMULA, DEFAULT_FORMULA);
+        }
+
+        if (!object.containsKey(MIN_GRADE))
+        {
+            object.put(MIN_GRADE, "50");
+        }
+
+        if (!object.containsKey(LIST_SIZE))
+        {
+            object.put(LIST_SIZE, "300");
+        }
+
+        if (!object.containsKey(BACK_BY_DATE))
+        {
+            object.put(BACK_BY_DATE, false);
+        }
+
+        if (!object.containsKey(BACK_DAYS))
+        {
+            object.put(BACK_DAYS, "0");
+        }
+
+        if (!object.containsKey(BACK_TO_DATE))
+        {
+            object.put(BACK_TO_DATE, DateData.format.format(new Date()));
+        }
+        
+        if (!object.containsKey(THREADS))
+        {
+            object.put(THREADS, "50");
+        }
+    }
+
     @Override
     protected void initData()
     {
         try
         {
             object = JSONObject.fromObject(FileUtils.openAssetsString("pref.txt"));
+            fillInDefaultVals();
+            
             fromJson();
         }
         catch (Exception e)
@@ -119,21 +161,21 @@ public class GUI extends FrameWithStatus
 
     private void fromJson()
     {
-        textFields[0].setText(getWithDefault(FOMULAR, "min(350 ->1) < min(500 -> 351) && max(5 -> 1) > max(300 -> 6) && max(250 -> 1) < min(250 -> 1)  * 2 && max(250->30) *1.1 >  max(1->1)"));
-        textFields[1].setText(getWithDefault(LIST_SIZE, "300"));
-        textFields[2].setText(getWithDefault(MIN_GRADE, "50"));
-        Boolean byDate = getWithDefault(BACK_BY_DATE, false);
+        textFields[0].setText(object.getString(FORMULA));
+        textFields[1].setText(object.getString(LIST_SIZE));
+        textFields[2].setText(object.getString(MIN_GRADE));
+        Boolean byDate = object.getBoolean(BACK_BY_DATE);
         if (byDate)
         {
             ((JComboBox<String>) labels[3]).setSelectedIndex(1);
         }
-        textFields[3].setText(byDate ? getWithDefault(BACK_TO_DATE, DateData.format.format(Calendar.getInstance().getTime())) : getWithDefault(BACK_DAYS, "0"));
-        textFields[4].setText(getWithDefault(THREADS, "50"));
+        textFields[3].setText(byDate ? object.getString(BACK_TO_DATE) : object.getString(BACK_DAYS));
+        textFields[4].setText(object.getString(THREADS));
     }
 
     private void toJson()
     {
-        object.element(FOMULAR, textFields[0].getText());
+        object.element(FORMULA, textFields[0].getText());
         object.element(LIST_SIZE, textFields[1].getText());
         object.element(MIN_GRADE, textFields[2].getText());
 
@@ -355,7 +397,8 @@ public class GUI extends FrameWithStatus
     
     private void restoreData()
     {
-        object = JSONObject.fromObject("{'fomular':'min(350 ->1) < min(500 -> 351) && max(5 -> 1) > max(300 -> 6) && max(250 -> 1) < min(250 -> 1)  * 2 && max(250->30) *1.1 >  max(1->1)','listSize':'300','minGrade':'50','backByDate':false,'backDays':'0','backToDate':'20150530'}");
+        object = JSONObject.fromObject("{}");
+        fillInDefaultVals();
         fromJson();
     }
     
