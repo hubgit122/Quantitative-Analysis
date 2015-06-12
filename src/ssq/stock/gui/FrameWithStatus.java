@@ -42,13 +42,19 @@ public abstract class FrameWithStatus extends JFrame
     public FrameWithStatus(InputStream is)
     {
         this.iniData = is;
-        initView();
+        initComponent();
         initData();
         initListeners();
     }
     
+    /**
+     * 初始化数据, 包括控件中的数据
+     */
     abstract protected void initData();
-    
+
+    /**
+     * 为控件添加监听器
+     */
     abstract protected void initListeners();
     
     @Override
@@ -59,7 +65,10 @@ public abstract class FrameWithStatus extends JFrame
         setResizable(false);
     }
     
-    protected void initView()
+    /**
+     * 初始化控件, 不初始化控件里的数据
+     */
+    protected void initComponent()
     {
         setBackground(Color.WHITE);
         setLocation(200, 450);

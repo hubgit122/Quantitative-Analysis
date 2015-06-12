@@ -7,22 +7,27 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.TextField;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Calendar;
+import java.util.Date;
 
 import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
+import net.sf.json.JSONObject;
+import ssq.stock.DateData;
 import ssq.stock.Stock;
 import ssq.stock.interpreter.Interpreter;
 import ssq.utils.DirUtils;
@@ -30,12 +35,23 @@ import ssq.utils.FileUtils;
 
 public class GUI extends FrameWithStatus
 {
-    private static final String READY            = "查看参数是否正确, 并按开始";
-
+    private static final String BACK_DAYS        = "backDays";
+    
     private static final long   serialVersionUID = 1L;
     
+    private static final String BACK_TO_DATE     = "backToDate";
+    private static final String THREADS          = "downLoadThreads";
+    private static final String BACK_BY_DATE     = "backByDate";
+    private static final String MIN_GRADE        = "minGrade";
+    private static final String LIST_SIZE        = "listSize";
+    private static final String FOMULAR          = "fomular";
+    
+    private static final String READY            = "查看参数是否正确, 并按开始";
+
+    JSONObject                  object;
+
     public static GUI           instance         = null;
-    JLabel[]                    labels;
+    JComponent[]                labels;
     public TextField[]          textFields;
     JButton[]                   buttons;
     public static final Font    SONGFONT_FONT    = new Font("宋体", Font.PLAIN, 16);
@@ -57,28 +73,17 @@ public class GUI extends FrameWithStatus
     {
         super(null);
         instance = this;
+        fromJson();
         setVisible(true);
     }
     
     @Override
     protected void initData()
     {
-        restoreData();
         try
         {
-            BufferedReader reader = new BufferedReader(new FileReader(new File(DirUtils.getXxRoot("assets"), "pref.txt")));
-            for (int i = 0; i < textFields.length; i++)
-            {
-                textFields[i].setText(reader.readLine());
-            }
-            
-            try
-            {
-                reader.close();
-            }
-            catch (IOException e)
-            {
-            }
+            object = JSONObject.fromObject(FileUtils.openAssetsString("pref.txt"));
+            fromJson();
         }
         catch (Exception e)
         {
@@ -87,7 +92,65 @@ public class GUI extends FrameWithStatus
             restoreData();
         }
     }
+
+    private String getWithDefault(String key, String defaultVal)
+    {
+        try
+        {
+            return object.getString(key);
+        }
+        catch (Exception e)
+        {
+            return defaultVal;
+        }
+    }
     
+    private Boolean getWithDefault(String key, Boolean defaultVal)
+    {
+        try
+        {
+            return object.getBoolean(key);
+        }
+        catch (Exception e)
+        {
+            return defaultVal;
+        }
+    }
+
+    private void fromJson()
+    {
+        textFields[0].setText(getWithDefault(FOMULAR, "min(350 ->1) < min(500 -> 351) && max(5 -> 1) > max(300 -> 6) && max(250 -> 1) < min(250 -> 1)  * 2 && max(250->30) *1.1 >  max(1->1)"));
+        textFields[1].setText(getWithDefault(LIST_SIZE, "300"));
+        textFields[2].setText(getWithDefault(MIN_GRADE, "50"));
+        Boolean byDate = getWithDefault(BACK_BY_DATE, false);
+        if (byDate)
+        {
+            ((JComboBox<String>) labels[3]).setSelectedIndex(1);
+        }
+        textFields[3].setText(byDate ? getWithDefault(BACK_TO_DATE, DateData.format.format(Calendar.getInstance().getTime())) : getWithDefault(BACK_DAYS, "0"));
+        textFields[4].setText(getWithDefault(THREADS, "50"));
+    }
+
+    private void toJson()
+    {
+        object.element(FOMULAR, textFields[0].getText());
+        object.element(LIST_SIZE, textFields[1].getText());
+        object.element(MIN_GRADE, textFields[2].getText());
+
+        boolean backByDate = ((JComboBox<String>) labels[3]).getSelectedIndex() == 1;
+        object.element(BACK_BY_DATE, backByDate);
+        if (backByDate)
+        {
+            object.element(BACK_TO_DATE, textFields[3].getText());
+        }
+        else
+        {
+            object.element(BACK_DAYS, textFields[3].getText());
+        }
+        
+        object.element(THREADS, textFields[4].getText());
+    }
+
     @Override
     protected void initListeners()
     {
@@ -97,6 +160,20 @@ public class GUI extends FrameWithStatus
         {
             buttons[i].addMouseListener(listeners[i]);
         }
+        
+        final JComboBox<String> jComboBox = (JComboBox<String>) labels[3];
+
+        jComboBox.addItemListener(new ItemListener()
+        {
+            @Override
+            public void itemStateChanged(ItemEvent e)
+            {
+                if (e.getStateChange() == java.awt.event.ItemEvent.SELECTED)
+                {
+                    textFields[3].setText((jComboBox.getSelectedIndex() == 0) ? getWithDefault(BACK_DAYS, "0") : getWithDefault(BACK_TO_DATE, DateData.format.format(new Date())));
+                }
+            }
+        });
     }
 
     public static GUI getInstance()
@@ -136,18 +213,7 @@ public class GUI extends FrameWithStatus
                                                  {
                                                      try
                                                      {
-                                                         File src = new File(DirUtils.getXxRoot("assets"), "pref.txt");
-                                                         
-                                                         FileWriter fileWriter = new FileWriter(src);
-                                                         for (int i = 0; i < GUI.getInstance().textFields.length; i++)
-                                                         {
-                                                             fileWriter.write(GUI.getInstance().textFields[i].getText() + "\r\n");
-                                                         }
-                                                         
-                                                         fileWriter.close();
-                                                         
-                                                         File dst = new File(DirUtils.getXxRoot("assets"), "pref" + Calendar.getInstance().getTimeInMillis() + ".txt");
-                                                         FileUtils.copyFile(src, dst);
+                                                         getInstance().saveData();
                                                      }
                                                      catch (IOException e1)
                                                      {
@@ -289,13 +355,24 @@ public class GUI extends FrameWithStatus
     
     private void restoreData()
     {
-        textFields[0].setText("min(350 ->1) < min(500 -> 351) && max(5 -> 1) > max(300 -> 6) && max(250 -> 1) < min(250 -> 1)  * 2 && max(250->30) *1.1 >  max(1->1)");
-        textFields[1].setText(String.valueOf(100));
-        textFields[2].setText(String.valueOf(50));
-        textFields[3].setText(String.valueOf(0));
-        textFields[4].setText(String.valueOf(20));
+        object = JSONObject.fromObject("{'fomular':'min(350 ->1) < min(500 -> 351) && max(5 -> 1) > max(300 -> 6) && max(250 -> 1) < min(250 -> 1)  * 2 && max(250->30) *1.1 >  max(1->1)','listSize':'300','minGrade':'50','backByDate':false,'backDays':'0','backToDate':'20150530'}");
+        fromJson();
     }
     
+    public void saveData() throws IOException
+    {
+        toJson();
+        
+        File src = new File(DirUtils.getXxRoot("assets"), "pref.txt");
+
+        FileWriter fileWriter = new FileWriter(src);
+        fileWriter.write(object.toString());
+        fileWriter.close();
+        
+        File dst = new File(DirUtils.getXxRoot("assets"), "pref" + Calendar.getInstance().getTimeInMillis() + ".txt");
+        FileUtils.copyFile(src, dst);
+    }
+
     private void deleteListeners()
     {
         for (int i = 0; i < buttons.length; i++)
@@ -305,11 +382,15 @@ public class GUI extends FrameWithStatus
     }
     
     @Override
-    protected void initView()
+    protected void initComponent()
     {
-        super.initView();
-
-        labels = new JLabel[] { new JLabel("选股公式"), new JLabel("最大列表长度"), new JLabel("最小接受的分值"), new JLabel("回溯天数"), new JLabel("下载线程数") };
+        super.initComponent();
+        
+        JComboBox<String> comboBox = new JComboBox<String>();
+        comboBox.addItem("回溯交易日数");
+        comboBox.addItem("回溯到日期");
+        
+        labels = new JComponent[] { new JLabel("选股公式"), new JLabel("最大列表长度"), new JLabel("最小接受的分值"), comboBox, new JLabel("下载线程数") };
         textFields = new TextField[] { new TextField(90), new TextField(90), new TextField(90), new TextField(90), new TextField(90) };
         buttons = new JButton[] { new JButton("保存设置"), new JButton("恢复默认设置"), new JButton("显示结果"), new JButton("调试选股公式"), new JButton("更新股票数据"), new JButton("开始选股") };
         
@@ -335,7 +416,7 @@ public class GUI extends FrameWithStatus
 
             gbc.gridx = 0;
             gbc.gridwidth = 1;
-            JLabel label = labels[i];
+            JComponent label = labels[i];
             label.setFont(SONGFONT_FONT);
             
             main.add(label, gbc);

@@ -62,9 +62,9 @@ public abstract class TableFrame extends FrameWithStatus
     }
 
     @Override
-    protected void initView()
+    protected void initComponent()
     {
-        super.initView();
+        super.initComponent();
         
         table = new JTable();
 

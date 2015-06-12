@@ -16,17 +16,17 @@ public abstract class SqlAccesser
 {
     private Connection connection;
     protected String   url, dbname;
-    
+
     public SqlAccesser(String dbname, String url)
     {
         this(dbname, url, null, null);
     }
-    
+
     public SqlAccesser(String dbname, String url, String usr, String pass)
     {
         this.url = url;
         this.dbname = dbname;
-
+        
         try
         {
             connection = usr != null && pass != null ? DriverManager.getConnection(getJDBCPath(), usr, pass) : DriverManager.getConnection(getJDBCPath());
@@ -36,30 +36,30 @@ public abstract class SqlAccesser
             e.printStackTrace();
         }
     }
-
+    
     public String getJDBCPath()
     {
         return url;
     }
-
+    
     /**
      * 如果指定DB不存在, 则用指定的sql语句创建DB和Table
      */
-    public void checkDatabase(String sql, String version)
+    public void checkDatabase(String version)
     {
-        
+
         if (version == null)
         {
             version = "1.0";
         }
-
+        
         if (dbExists())
         {
             updateDatabase();
         }
-        
-        tryCreate();
-        
+
+        tryCreateDB();
+
         try
         {
             update("create table version(version varchar(100))", null);
@@ -68,27 +68,29 @@ public abstract class SqlAccesser
         catch (Exception e)
         {
         }
-        
+
         try
         {
-            update(sql, null);
+            tryCreateTable();
         }
         catch (Exception e)
         {
         }
     }
-
-    abstract void tryCreate();
-
-    abstract boolean dbExists();
-
+    
+    abstract protected void tryCreateTable();
+    
+    abstract protected void tryCreateDB();
+    
+    abstract protected boolean dbExists();
+    
     /**
      * 对数据库有更新要求时, 应该继承此类, 覆盖此方法. 在数据库里判断version域
      *
      * @param path
      */
     abstract public void updateDatabase();
-
+    
     /**
      * 获得结果map的列表
      *
@@ -108,7 +110,7 @@ public abstract class SqlAccesser
         {
             return list;
         }
-
+        
         Object[] result = queryWithStatement(sql, args);
         Statement statement = (Statement) result[0];
         ResultSet resultSet = (ResultSet) result[1];
@@ -124,7 +126,7 @@ public abstract class SqlAccesser
         close(statement, resultSet);
         return list;
     }
-
+    
     /**
      * 执行sql返回statement和resultSet
      *
@@ -153,7 +155,7 @@ public abstract class SqlAccesser
         }
         return resultSet;
     }
-
+    
     /**
      * 执行sql返回statement和resultSet
      *
@@ -179,13 +181,13 @@ public abstract class SqlAccesser
             statement = connection.createStatement();
             resultSet = statement.executeQuery(sql);
         }
-
+        
         result[0] = statement;
         result[1] = resultSet;
-        
+
         return result;
     }
-
+    
     /**
      * 操作数据库(增删改)
      *
@@ -207,7 +209,7 @@ public abstract class SqlAccesser
         }
         return result;
     }
-
+    
     /**
      * 获得预编译语句
      *
@@ -255,7 +257,7 @@ public abstract class SqlAccesser
         }
         return prepared;
     }
-
+    
     /**
      * 关闭连接
      *

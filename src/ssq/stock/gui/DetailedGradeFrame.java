@@ -26,9 +26,9 @@ public class DetailedGradeFrame extends TreeFrame
     }
 
     @Override
-    protected void initView()
+    protected void initComponent()
     {
-        super.initView();
+        super.initComponent();
     }
 
     @Override

@@ -119,19 +119,53 @@ public class StockHistory extends ArrayList<DateData>
     {
         return Integer.valueOf(dateString.replaceAll("-", ""));
     }
-
+    
     public float func(String method, List<Float> args, ValueType type, boolean rest)
     {
+        int backDays = args.get(2).intValue();
+
+        if (backDays > 19000000) //是个日期
+        {
+            if (backDays > DateData.dateToNumber(getLastDownloadableDate()))
+            {
+                System.err.println("你太着急了, " + backDays + "当天的数据还不能被完全获得");
+                backDays = 0;
+            }
+            else
+            {
+                int i = 0;
+                
+                for (DateData data : this)
+                {
+                    if (data.date <= backDays)
+                    {
+                        break;
+                    }
+                    else
+                    {
+                        ++i;
+                    }
+                }
+                
+                if (i == size())
+                {
+                    System.err.println(stock + "的历史数据太少, 不能支持回溯到" + backDays);
+                }
+                
+                backDays = i;
+            }
+        }
+
         switch (method)
         {
             case "min":
-                return min(args.get(0).intValue() + args.get(2).intValue(), args.get(1).intValue() + args.get(2).intValue(), type, rest);
+                return min(args.get(0).intValue() + backDays, args.get(1).intValue() + backDays, type, rest);
 
             case "max":
-                return max(args.get(0).intValue() + args.get(2).intValue(), args.get(1).intValue() + args.get(2).intValue(), type, rest);
+                return max(args.get(0).intValue() + backDays, args.get(1).intValue() + backDays, type, rest);
                 
             case "sum":
-                return sum(args.get(0).intValue() + args.get(2).intValue(), args.get(1).intValue() + args.get(2).intValue(), type, rest);
+                return sum(args.get(0).intValue() + backDays, args.get(1).intValue() + backDays, type, rest);
                 
                 //            case "mean":
                 //                return mean(args.get(0).intValue() + args.get(2).intValue(), args.get(1).intValue() + args.get(2).intValue(), type, rest);

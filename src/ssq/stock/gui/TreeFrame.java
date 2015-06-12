@@ -45,9 +45,9 @@ public abstract class TreeFrame extends FrameWithStatus
     }
     
     @Override
-    protected void initView()
+    protected void initComponent()
     {
-        super.initView();
+        super.initComponent();
 
         tree = new JTree();
         tree.setFont(GUI.SONGFONT_FONT);

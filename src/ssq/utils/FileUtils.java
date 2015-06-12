@@ -215,7 +215,7 @@ public class FileUtils
         {
             if (i >= beginLine)
             {
-                result.append(line + (asLine ? "\n" : ""));
+                result.append(line + (asLine ? "\r\n" : ""));
             }
             i++;
         }

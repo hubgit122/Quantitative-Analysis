@@ -82,9 +82,9 @@ public class QueryResultFrame extends TableFrame
     }
     
     @Override
-    protected void initView()
+    protected void initComponent()
     {
-        super.initView();
+        super.initComponent();
 
         tf = new TextField(6);
         JPanel searchJPanel = new JPanel();

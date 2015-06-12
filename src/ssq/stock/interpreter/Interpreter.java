@@ -33,13 +33,18 @@ public class Interpreter extends Analyzer
 {
     File                     outFile;
     int                      maxInfo;
-    int                      backDays = 0;
+    /**
+     * 回溯的交易日数或者回溯到的日期(yyyyMMdd)<br>
+     * 如果大于19000000, 认为是回溯到的日期, 否则为回溯的交易日数<br>
+     * 按交易日回溯时, 股票停牌的交易日不计入回溯日数, 也就是说, 会回溯到停牌之前. 而按日期回溯后的选股结果则会还原在当天收盘后回溯0日选股的结果
+     */
+    int                      back   = 0;
     float                    minGrade;
-    public RuleLevel         AST      = null;
+    public RuleLevel         AST    = null;
     String                   instruction;
     String                   outputDir;
-
-    public static RuleParser parser   = new RuleParser();
+    
+    public static RuleParser parser = new RuleParser();
     static
     {
         try
@@ -51,7 +56,7 @@ public class Interpreter extends Analyzer
             e.printStackTrace();
         }
     }
-    
+
     /**
      * 初始化选股器
      *
@@ -64,7 +69,7 @@ public class Interpreter extends Analyzer
     {
         this(max, min, days, insturction, "assets/query_history", Stock.filter);
     }
-    
+
     /**
      * 初始化规定了输出文件和股票代码过滤器的选股器
      *
@@ -74,43 +79,44 @@ public class Interpreter extends Analyzer
      * @param outDir
      * @throws IOException
      */
-    public Interpreter(Integer max, Float min, Integer days, String insturction, String outDir, String filter) throws IOException
+    public Interpreter(Integer max, Float min, Integer date, String insturction, String outDir, String filter) throws IOException
     {
         super(filter);
-        
+
         this.outputDir = outDir;
         this.maxInfo = max;
         this.minGrade = min / 100;
-        this.backDays = days;
+
+        this.back = date;
         this.instruction = insturction;
         AST = parser.getRoot(instruction);
     }
-    
+
     @Override
     public void run() throws Exception
     {
         evals.clear();
-        
-        super.run();
 
+        super.run();
+        
         if (evals.size() > maxInfo)
         {
             evals = new Evaluations(evals.subList(0, maxInfo));
         }
-
+        
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy年MM月dd日 HH时mm分ss秒");
-
-        outFile = new File(DirUtils.getXxRoot(outputDir), simpleDateFormat.format(new Date()) + "@" + backDays);
-
+        
+        outFile = new File(DirUtils.getXxRoot(outputDir), simpleDateFormat.format(new Date()) + "@" + back);
+        
         print();
     }
-
+    
     @Override
     public void scan(Stock s)
     {
         HashMap<Val, Float> memory = new HashMap<>();
         TreeNode<Float> result = evaluate(s, AST, memory);
-        
+
         if (result.getElement() >= minGrade)
         {
             synchronized (evals)
@@ -120,27 +126,27 @@ public class Interpreter extends Analyzer
         }
         memory.clear();
     }
-    
+
     private TreeNode<Float> evaluate(Stock s, RuleLevel AST, HashMap<Val, Float> memory)
     {
         float grade;
         TreeNode<Float> result;
-        
+
         if (AST instanceof CompositeRule)
         {
             CompositeRule expr = (CompositeRule) AST;
             result = new TreeNode<Float>(-1f);
             boolean error = false;
-
+            
             if (expr.op == BinaryRuleOperator.AND)
             {
                 grade = 1f;
-                
+
                 for (RuleLevel ruleLevel : expr.rules)
                 {
                     TreeNode<Float> tmp = evaluate(s, ruleLevel, memory);
                     result.addChildNode(tmp);
-
+                    
                     float thisGrade = tmp.getElement();
                     if (thisGrade >= 0)
                     {
@@ -155,12 +161,12 @@ public class Interpreter extends Analyzer
             else
             {
                 grade = 0f;
-                
+
                 for (RuleLevel ruleLevel : expr.rules)
                 {
                     TreeNode<Float> tmp = evaluate(s, ruleLevel, memory);
                     result.addChildNode(tmp);
-
+                    
                     float thisGrade = tmp.getElement();
                     if (thisGrade >= 0)
                     {
@@ -179,10 +185,10 @@ public class Interpreter extends Analyzer
             try
             {
                 AtomRule val = (AtomRule) AST;
-                
+
                 float lExp = evaluate(s, val.lexpr, memory), rExp = evaluate(s, val.rexpr, memory);
                 int order = val.inequality.ordinal();
-                
+
                 if (order < 2) // < or <=
                 {
                     grade = saturate(rExp / lExp);
@@ -196,7 +202,7 @@ public class Interpreter extends Analyzer
                     grade = Math.min(rExp / lExp, lExp / rExp);
                 }
                 grade = 1 - (1 - grade) * val.weight;
-                
+
                 result = new TreeNode<Float>(grade);
                 result.addChild(lExp);
                 result.addChild(rExp);
@@ -204,14 +210,14 @@ public class Interpreter extends Analyzer
             catch (Exception e)
             {
                 //                e.printStackTrace();
-                
+
                 return new TreeNode<Float>(-1f);
             }
         }
-
+        
         return result;
     }
-
+    
     private static float saturate(float f)
     {
         if (f > 1f)
@@ -227,7 +233,7 @@ public class Interpreter extends Analyzer
             return f;
         }
     }
-
+    
     private float evaluate(Stock s, Expression expr, HashMap<Val, Float> memory)
     {
         if (expr instanceof BiExpression)
@@ -238,7 +244,7 @@ public class Interpreter extends Analyzer
         else
         { // Val
             Val val = (Val) expr;
-
+            
             if (val.isFloat)
             {
                 return ((Val) expr).val;
@@ -246,7 +252,7 @@ public class Interpreter extends Analyzer
             else
             {
                 Float f = memory.get(val);
-                
+
                 if (f != null)
                 {
                     return f;
@@ -254,24 +260,24 @@ public class Interpreter extends Analyzer
                 else
                 {
                     ArrayList<Float> args = new ArrayList<>();
-                    
+
                     for (Expression e : val.args)
                     {
                         args.add(evaluate(s, e, memory));
                     }
-                    
-                    args.add((float) backDays);
-                    
+
+                    args.add((float) back);
+
                     float result = s.history.func(val.func, args, val.type, val.rest);
-                    
+
                     memory.put(val, result);
-                    
+
                     return result;
                 }
             }
         }
     }
-
+    
     private void print() throws IOException
     {
         ObjectOutputStream o = new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream(outFile)));
@@ -284,7 +290,7 @@ public class Interpreter extends Analyzer
             e.printStackTrace();
             GUI.statusText(e.getLocalizedMessage());
         }
-
+        
         try
         {
             o.close();
@@ -293,24 +299,24 @@ public class Interpreter extends Analyzer
         {
         }
     }
-
+    
     public static class Evaluations extends LinkedList<Pair<Integer, TreeNode<Float>>> implements Serializable
     {
         private static final long serialVersionUID = 1L;
-
+        
         public Evaluations(List<Pair<Integer, TreeNode<Float>>> subList)
         {
             super(subList);
         }
-
+        
         public Evaluations()
         {
         }
-        
+
         @Override
         public boolean add(Pair<Integer, TreeNode<Float>> e)
         {
-
+            
             if (this.size() == 0)
             {
                 addFirst(e);
@@ -320,11 +326,11 @@ public class Interpreter extends Analyzer
                 addFirst(e);
                 return true;
             }
-
+            
             for (ListIterator<Pair<Integer, TreeNode<Float>>> iterator = listIterator(); iterator.hasNext();)
             {
                 Pair<Integer, TreeNode<Float>> node = iterator.next();
-
+                
                 if (e.getValue().getElement() > node.getValue().getElement())
                 {
                     iterator.previous();
@@ -332,11 +338,11 @@ public class Interpreter extends Analyzer
                     return true;
                 }
             }
-
+            
             addLast(e);
             return true;
         };
     }
-
+    
     public Evaluations evals = new Evaluations();
 }

@@ -11,7 +11,7 @@
 	<classpathentry kind="lib" path="libs/commons-logging-1.2.jar"/>
 	<classpathentry kind="lib" path="libs/ezmorph-1.0.6.jar"/>
 	<classpathentry kind="lib" path="libs/httpcore-4.4.jar" sourcepath="D:/projects/java/libs-all/httpcomponents-core-4.4-src.zip"/>
-	<classpathentry kind="lib" path="libs/json-lib-2.4-jdk15.jar"/>
+	<classpathentry kind="lib" path="libs/json-lib-2.4-jdk15.jar" sourcepath="D:/projects/java/libs-all/json-lib-2.4-jdk15-sources.jar"/>
 	<classpathentry kind="lib" path="libs/commons-cli-1.2.jar"/>
 	<classpathentry kind="lib" path="libs/sqlite-jdbc-3.8.7.jar"/>
 	<classpathentry kind="lib" path="libs/JNative_1.4RC3_src.zip"/>
