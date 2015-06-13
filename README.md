@@ -76,6 +76,14 @@
 > 导出的可执行文件 安装[JDK8](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html)或者JRE8后可以运行 
 > 使用的库文件与libs里的相同, 将libs改名为SelectStock_lib才可以正确地找到依赖库
 
+##11. sendkey.exe
+> 使用任一通达信系列的股票浏览工具, 如
+- 光大证券超强版
+- 广发证券通达信
+- 原版通达信等
+在打开通达信之后, 在选股结果列表里边双击股票, 将自动跳转到对应的股票. 
+这个exe文件便是执行跳转的程序
+
 #二、公式选股器的使用
 > 主要是公式的编写. 
 
@@ -103,3 +111,19 @@ sum(250->1).quantity /*最近250天的成交量之和*/ > 10000000000)
 > max(250->125).opening..norest * 2 < average(5->1).highest @2 && (3<4 || sum(250->1).quantity > 10000000000)
 
 这只是个示例, 用这个公式选出来什么垃圾股跟我没关系~
+
+#三、关于接口
+
+- java调C
+> 可以用命令行简单地实现
+
+- java调matlab
+> 使用javabuilder库
+
+- SPSS数据源
+ - 使用sqlserver2005
+> 将sa账户的密码设置为00, 或者修改我的源代码, 都可以使用SqlserverUpdater将历史数据放入sqlserver. 
+注意: **要先建立一个名为Stock的数据库**
+
+ - 使用文本文件
+ >使用TextOutPuter可以输出所有股票的历史数据
