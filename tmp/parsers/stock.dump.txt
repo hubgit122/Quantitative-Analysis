@@ -35,7 +35,7 @@
 (Rule 34)  func : "min" 
 (Rule 35)  func : "sum" 
 (Rule 36)  func : "mean" 
-(Rule 37)  func : "avarage" 
+(Rule 37)  func : "average" 
 (Rule 38)  args : EXPRESSION 
 (Rule 39)  args : args delimiter EXPRESSION 
 (Rule 40)  delimiter : "," 
@@ -51,27 +51,27 @@
 (Rule 50)  C : "<" 
 (Rule 51)  C : ">" 
 
-FIRST(args) = [`float`, `digits`, "max", "min", "sum", "mean", "avarage", '-', '(']
+FIRST(args) = [`float`, `digits`, "max", "min", "sum", "mean", "average", '-', '(']
 FIRST(_at__float_OR_digits_OPT) = ["@", ]
 FIRST(_dot_appendix) = ['.']
 FIRST(appendix) = ["highest", "lowest", "opening", "closing", "quantity"]
-FIRST(func) = ["max", "min", "sum", "mean", "avarage"]
+FIRST(func) = ["max", "min", "sum", "mean", "average"]
 FIRST(_dotdot_norest) = [".."]
-FIRST(ruleTerm) = [`float`, `digits`, "max", "min", "sum", "mean", "avarage", '-', '(']
+FIRST(ruleTerm) = [`float`, `digits`, "max", "min", "sum", "mean", "average", '-', '(']
 FIRST(_at__float_OR_digits) = ["@"]
 FIRST(_dot_appendix_OPT) = ['.', ]
-FIRST(ruleFactor) = [`float`, `digits`, "max", "min", "sum", "mean", "avarage", '-', '(']
-FIRST(<START>) = [`float`, `digits`, "max", "min", "sum", "mean", "avarage", '-', '(']
+FIRST(ruleFactor) = [`float`, `digits`, "max", "min", "sum", "mean", "average", '-', '(']
+FIRST(<START>) = [`float`, `digits`, "max", "min", "sum", "mean", "average", '-', '(']
 FIRST(_float_OR_digits) = [`float`, `digits`]
 FIRST(_nr_OPT) = ["#", ]
 FIRST(C) = ["<=", "==", ">=", "<", ">"]
 FIRST(_nr) = ["#"]
-FIRST(FACTOR) = [`float`, `digits`, "max", "min", "sum", "mean", "avarage", '-', '(']
-FIRST(EXPRESSION) = [`float`, `digits`, "max", "min", "sum", "mean", "avarage", '-', '(']
-FIRST(ruleExpr) = [`float`, `digits`, "max", "min", "sum", "mean", "avarage", '-', '(']
+FIRST(FACTOR) = [`float`, `digits`, "max", "min", "sum", "mean", "average", '-', '(']
+FIRST(EXPRESSION) = [`float`, `digits`, "max", "min", "sum", "mean", "average", '-', '(']
+FIRST(ruleExpr) = [`float`, `digits`, "max", "min", "sum", "mean", "average", '-', '(']
 FIRST(delimiter) = [",", "->"]
-FIRST(S_ruleExpr) = [`float`, `digits`, "max", "min", "sum", "mean", "avarage", '-', '(']
-FIRST(TERM) = [`float`, `digits`, "max", "min", "sum", "mean", "avarage", '-', '(']
+FIRST(S_ruleExpr) = [`float`, `digits`, "max", "min", "sum", "mean", "average", '-', '(']
+FIRST(TERM) = [`float`, `digits`, "max", "min", "sum", "mean", "average", '-', '(']
 FIRST(_dotdot_norest_OPT) = ["..", ]
 
 State 0
@@ -98,7 +98,7 @@ State 0
   (Rule 34) func : ."min"  LOOKAHEAD['(']	-> State 10
   (Rule 35) func : ."sum"  LOOKAHEAD['(']	-> State 6
   (Rule 36) func : ."mean"  LOOKAHEAD['(']	-> State 1
-  (Rule 37) func : ."avarage"  LOOKAHEAD['(']	-> State 14
+  (Rule 37) func : ."average"  LOOKAHEAD['(']	-> State 14
 
 State 1
   (Rule 36) func : "mean" .	['(']
@@ -130,7 +130,7 @@ State 3
   (Rule 34) func : ."min"  LOOKAHEAD['(']	-> State 10
   (Rule 35) func : ."sum"  LOOKAHEAD['(']	-> State 6
   (Rule 36) func : ."mean"  LOOKAHEAD['(']	-> State 1
-  (Rule 37) func : ."avarage"  LOOKAHEAD['(']	-> State 14
+  (Rule 37) func : ."average"  LOOKAHEAD['(']	-> State 14
 
 State 4
   (Rule 16) EXPRESSION : TERM .	["<", '-', "EoI", ">", "||", "<=", ')', ",", "@", "&&", "==", "#", '+', "->", ">=", ]
@@ -141,11 +141,11 @@ State 5
   (Rule 9) ruleFactor : EXPRESSION .C EXPRESSION _at__float_OR_digits_OPT  LOOKAHEAD["||", "EoI", ')', "&&", "#", ]	-> State 23
   (Rule 17) EXPRESSION : EXPRESSION .'+' TERM  LOOKAHEAD['+', ">=", '-', "<", "==", ">", "<="]	-> State 27
   (Rule 18) EXPRESSION : EXPRESSION .'-' TERM  LOOKAHEAD['+', ">=", '-', "<", "==", ">", "<="]	-> State 25
-  (Rule 47) C : ."<="  LOOKAHEAD["sum", '-', "max", "avarage", "min", `float`, '(', `digits`, "mean"]	-> State 24
-  (Rule 48) C : ."=="  LOOKAHEAD["sum", '-', "max", "avarage", "min", `float`, '(', `digits`, "mean"]	-> State 22
-  (Rule 49) C : .">="  LOOKAHEAD["sum", '-', "max", "avarage", "min", `float`, '(', `digits`, "mean"]	-> State 29
-  (Rule 50) C : ."<"  LOOKAHEAD["sum", '-', "max", "avarage", "min", `float`, '(', `digits`, "mean"]	-> State 28
-  (Rule 51) C : .">"  LOOKAHEAD["sum", '-', "max", "avarage", "min", `float`, '(', `digits`, "mean"]	-> State 26
+  (Rule 47) C : ."<="  LOOKAHEAD["sum", '-', "max", "min", `float`, '(', `digits`, "mean", "average"]	-> State 24
+  (Rule 48) C : ."=="  LOOKAHEAD["sum", '-', "max", "min", `float`, '(', `digits`, "mean", "average"]	-> State 22
+  (Rule 49) C : .">="  LOOKAHEAD["sum", '-', "max", "min", `float`, '(', `digits`, "mean", "average"]	-> State 29
+  (Rule 50) C : ."<"  LOOKAHEAD["sum", '-', "max", "min", `float`, '(', `digits`, "mean", "average"]	-> State 28
+  (Rule 51) C : .">"  LOOKAHEAD["sum", '-', "max", "min", `float`, '(', `digits`, "mean", "average"]	-> State 26
 
 State 6
   (Rule 35) func : "sum" .	['(']
@@ -171,7 +171,7 @@ State 9
   (Rule 34) func : ."min"  LOOKAHEAD['(']	-> State 10
   (Rule 35) func : ."sum"  LOOKAHEAD['(']	-> State 6
   (Rule 36) func : ."mean"  LOOKAHEAD['(']	-> State 1
-  (Rule 37) func : ."avarage"  LOOKAHEAD['(']	-> State 14
+  (Rule 37) func : ."average"  LOOKAHEAD['(']	-> State 14
 
 State 10
   (Rule 34) func : "min" .	['(']
@@ -187,7 +187,7 @@ State 13
   (Rule 19) TERM : FACTOR .	['*', ",", '-', "||", ">", "&&", "<=", "->", '+', ">=", "<", ')', '/', "EoI", "==", "@", , "#"]
 
 State 14
-  (Rule 37) func : "avarage" .	['(']
+  (Rule 37) func : "average" .	['(']
 
 State 15
   (Rule 33) func : "max" .	['(']
@@ -203,11 +203,11 @@ State 18
   (Rule 17) EXPRESSION : EXPRESSION .'+' TERM  LOOKAHEAD['+', ">=", "<", '-', "==", ')', ">", "<="]	-> State 27
   (Rule 18) EXPRESSION : EXPRESSION .'-' TERM  LOOKAHEAD['+', ">=", "<", '-', "==", ')', ">", "<="]	-> State 25
   (Rule 32) FACTOR : '(' EXPRESSION .')'  LOOKAHEAD["<", '-', '*', ">", '/', "<=", ')', "==", '+', ">="]	-> State 38
-  (Rule 47) C : ."<="  LOOKAHEAD["sum", '-', "max", "avarage", "min", `float`, '(', `digits`, "mean"]	-> State 24
-  (Rule 48) C : ."=="  LOOKAHEAD["sum", '-', "max", "avarage", "min", `float`, '(', `digits`, "mean"]	-> State 22
-  (Rule 49) C : .">="  LOOKAHEAD["sum", '-', "max", "avarage", "min", `float`, '(', `digits`, "mean"]	-> State 29
-  (Rule 50) C : ."<"  LOOKAHEAD["sum", '-', "max", "avarage", "min", `float`, '(', `digits`, "mean"]	-> State 28
-  (Rule 51) C : .">"  LOOKAHEAD["sum", '-', "max", "avarage", "min", `float`, '(', `digits`, "mean"]	-> State 26
+  (Rule 47) C : ."<="  LOOKAHEAD["sum", '-', "max", "min", `float`, '(', `digits`, "mean", "average"]	-> State 24
+  (Rule 48) C : ."=="  LOOKAHEAD["sum", '-', "max", "min", `float`, '(', `digits`, "mean", "average"]	-> State 22
+  (Rule 49) C : .">="  LOOKAHEAD["sum", '-', "max", "min", `float`, '(', `digits`, "mean", "average"]	-> State 29
+  (Rule 50) C : ."<"  LOOKAHEAD["sum", '-', "max", "min", `float`, '(', `digits`, "mean", "average"]	-> State 28
+  (Rule 51) C : .">"  LOOKAHEAD["sum", '-', "max", "min", `float`, '(', `digits`, "mean", "average"]	-> State 26
 
 State 19
   (Rule 6) ruleExpr : ruleExpr ."||" ruleTerm  LOOKAHEAD["||", ')']	-> State 33
@@ -224,7 +224,7 @@ State 20
   (Rule 34) func : ."min"  LOOKAHEAD['(']	-> State 10
   (Rule 35) func : ."sum"  LOOKAHEAD['(']	-> State 6
   (Rule 36) func : ."mean"  LOOKAHEAD['(']	-> State 1
-  (Rule 37) func : ."avarage"  LOOKAHEAD['(']	-> State 14
+  (Rule 37) func : ."average"  LOOKAHEAD['(']	-> State 14
 
 State 21
   (Rule 21) TERM : TERM '/' .FACTOR  LOOKAHEAD['*', ",", '-', "||", ">", "&&", "<=", "->", '+', ">=", "<", ')', '/', "EoI", "==", "@", , "#"]	-> State 41
@@ -237,10 +237,10 @@ State 21
   (Rule 34) func : ."min"  LOOKAHEAD['(']	-> State 10
   (Rule 35) func : ."sum"  LOOKAHEAD['(']	-> State 6
   (Rule 36) func : ."mean"  LOOKAHEAD['(']	-> State 1
-  (Rule 37) func : ."avarage"  LOOKAHEAD['(']	-> State 14
+  (Rule 37) func : ."average"  LOOKAHEAD['(']	-> State 14
 
 State 22
-  (Rule 48) C : "==" .	["sum", '-', "max", "avarage", "min", `float`, '(', `digits`, "mean"]
+  (Rule 48) C : "==" .	["sum", '-', "max", "min", `float`, '(', `digits`, "mean", "average"]
 
 State 23
   (Rule 9) ruleFactor : EXPRESSION C .EXPRESSION _at__float_OR_digits_OPT  LOOKAHEAD["||", "EoI", ')', "&&", "#", ]	-> State 42
@@ -259,10 +259,10 @@ State 23
   (Rule 34) func : ."min"  LOOKAHEAD['(']	-> State 10
   (Rule 35) func : ."sum"  LOOKAHEAD['(']	-> State 6
   (Rule 36) func : ."mean"  LOOKAHEAD['(']	-> State 1
-  (Rule 37) func : ."avarage"  LOOKAHEAD['(']	-> State 14
+  (Rule 37) func : ."average"  LOOKAHEAD['(']	-> State 14
 
 State 24
-  (Rule 47) C : "<=" .	["sum", '-', "max", "avarage", "min", `float`, '(', `digits`, "mean"]
+  (Rule 47) C : "<=" .	["sum", '-', "max", "min", `float`, '(', `digits`, "mean", "average"]
 
 State 25
   (Rule 18) EXPRESSION : EXPRESSION '-' .TERM  LOOKAHEAD["<", '-', "EoI", ">", "||", "<=", ')', ",", "@", "&&", "==", "#", '+', "->", ">=", ]	-> State 43
@@ -278,10 +278,10 @@ State 25
   (Rule 34) func : ."min"  LOOKAHEAD['(']	-> State 10
   (Rule 35) func : ."sum"  LOOKAHEAD['(']	-> State 6
   (Rule 36) func : ."mean"  LOOKAHEAD['(']	-> State 1
-  (Rule 37) func : ."avarage"  LOOKAHEAD['(']	-> State 14
+  (Rule 37) func : ."average"  LOOKAHEAD['(']	-> State 14
 
 State 26
-  (Rule 51) C : ">" .	["sum", '-', "max", "avarage", "min", `float`, '(', `digits`, "mean"]
+  (Rule 51) C : ">" .	["sum", '-', "max", "min", `float`, '(', `digits`, "mean", "average"]
 
 State 27
   (Rule 17) EXPRESSION : EXPRESSION '+' .TERM  LOOKAHEAD["<", '-', "EoI", ">", "||", "<=", ')', ",", "@", "&&", "==", "#", '+', "->", ">=", ]	-> State 44
@@ -297,13 +297,13 @@ State 27
   (Rule 34) func : ."min"  LOOKAHEAD['(']	-> State 10
   (Rule 35) func : ."sum"  LOOKAHEAD['(']	-> State 6
   (Rule 36) func : ."mean"  LOOKAHEAD['(']	-> State 1
-  (Rule 37) func : ."avarage"  LOOKAHEAD['(']	-> State 14
+  (Rule 37) func : ."average"  LOOKAHEAD['(']	-> State 14
 
 State 28
-  (Rule 50) C : "<" .	["sum", '-', "max", "avarage", "min", `float`, '(', `digits`, "mean"]
+  (Rule 50) C : "<" .	["sum", '-', "max", "min", `float`, '(', `digits`, "mean", "average"]
 
 State 29
-  (Rule 49) C : ">=" .	["sum", '-', "max", "avarage", "min", `float`, '(', `digits`, "mean"]
+  (Rule 49) C : ">=" .	["sum", '-', "max", "min", `float`, '(', `digits`, "mean", "average"]
 
 State 30
   (Rule 4) _nr : "#" .	["EoI"]
@@ -335,7 +335,7 @@ State 33
   (Rule 34) func : ."min"  LOOKAHEAD['(']	-> State 10
   (Rule 35) func : ."sum"  LOOKAHEAD['(']	-> State 6
   (Rule 36) func : ."mean"  LOOKAHEAD['(']	-> State 1
-  (Rule 37) func : ."avarage"  LOOKAHEAD['(']	-> State 14
+  (Rule 37) func : ."average"  LOOKAHEAD['(']	-> State 14
 
 State 34
   (Rule 16) EXPRESSION : .TERM  LOOKAHEAD['+', '-', ",", "->", ')']	-> State 4
@@ -354,7 +354,7 @@ State 34
   (Rule 34) func : ."min"  LOOKAHEAD['(']	-> State 10
   (Rule 35) func : ."sum"  LOOKAHEAD['(']	-> State 6
   (Rule 36) func : ."mean"  LOOKAHEAD['(']	-> State 1
-  (Rule 37) func : ."avarage"  LOOKAHEAD['(']	-> State 14
+  (Rule 37) func : ."average"  LOOKAHEAD['(']	-> State 14
   (Rule 38) args : .EXPRESSION  LOOKAHEAD["->", ",", ')']	-> State 47
   (Rule 39) args : .args delimiter EXPRESSION  LOOKAHEAD["->", ",", ')']	-> State 46
 
@@ -378,7 +378,7 @@ State 36
   (Rule 34) func : ."min"  LOOKAHEAD['(']	-> State 10
   (Rule 35) func : ."sum"  LOOKAHEAD['(']	-> State 6
   (Rule 36) func : ."mean"  LOOKAHEAD['(']	-> State 1
-  (Rule 37) func : ."avarage"  LOOKAHEAD['(']	-> State 14
+  (Rule 37) func : ."average"  LOOKAHEAD['(']	-> State 14
 
 State 37
   (Rule 8) ruleTerm : ruleTerm "&&" .ruleFactor  LOOKAHEAD["||", "EoI", ')', "&&", "#", ]	-> State 49
@@ -399,7 +399,7 @@ State 37
   (Rule 34) func : ."min"  LOOKAHEAD['(']	-> State 10
   (Rule 35) func : ."sum"  LOOKAHEAD['(']	-> State 6
   (Rule 36) func : ."mean"  LOOKAHEAD['(']	-> State 1
-  (Rule 37) func : ."avarage"  LOOKAHEAD['(']	-> State 14
+  (Rule 37) func : ."average"  LOOKAHEAD['(']	-> State 14
 
 State 38
   (Rule 32) FACTOR : '(' EXPRESSION ')' .	['*', ",", '-', "||", ">", "&&", "<=", "->", '+', ">=", "<", ')', '/', "EoI", "==", "@", , "#"]
@@ -438,8 +438,8 @@ State 45
 State 46
   (Rule 24) FACTOR : func '(' args .')' _dot_appendix_OPT _dotdot_norest_OPT  LOOKAHEAD['*', ",", '-', "||", ">", "&&", "<=", "->", '+', ">=", "<", ')', '/', "EoI", "==", "@", , "#"]	-> State 53
   (Rule 39) args : args .delimiter EXPRESSION  LOOKAHEAD["->", ",", ')']	-> State 56
-  (Rule 40) delimiter : .","  LOOKAHEAD["sum", '-', "max", "avarage", "min", `float`, '(', `digits`, "mean"]	-> State 55
-  (Rule 41) delimiter : ."->"  LOOKAHEAD["sum", '-', "max", "avarage", "min", `float`, '(', `digits`, "mean"]	-> State 54
+  (Rule 40) delimiter : .","  LOOKAHEAD["sum", '-', "max", "min", `float`, '(', `digits`, "mean", "average"]	-> State 55
+  (Rule 41) delimiter : ."->"  LOOKAHEAD["sum", '-', "max", "min", `float`, '(', `digits`, "mean", "average"]	-> State 54
 
 State 47
   (Rule 17) EXPRESSION : EXPRESSION .'+' TERM  LOOKAHEAD['+', '-', "->", ",", ')']	-> State 27
@@ -472,10 +472,10 @@ State 53
   (Rule 27) _dot_appendix : .'.' appendix  LOOKAHEAD['*', ",", '-', "||", ">", "&&", "<=", "->", '+', ">=", "..", "<", ')', '/', "EoI", "==", "@", , "#"]	-> State 62
 
 State 54
-  (Rule 41) delimiter : "LOOKAHEAD["sum", '-', "max", "avarage", "min", `float`, '(', `digits`, "mean"]	->" .
+  (Rule 41) delimiter : "LOOKAHEAD["sum", '-', "max", "min", `float`, '(', `digits`, "mean", "average"]	->" .
 
 State 55
-  (Rule 40) delimiter : "," .	["sum", '-', "max", "avarage", "min", `float`, '(', `digits`, "mean"]
+  (Rule 40) delimiter : "," .	["sum", '-', "max", "min", `float`, '(', `digits`, "mean", "average"]
 
 State 56
   (Rule 16) EXPRESSION : .TERM  LOOKAHEAD['+', '-', ",", "->", ')']	-> State 4
@@ -493,7 +493,7 @@ State 56
   (Rule 34) func : ."min"  LOOKAHEAD['(']	-> State 10
   (Rule 35) func : ."sum"  LOOKAHEAD['(']	-> State 6
   (Rule 36) func : ."mean"  LOOKAHEAD['(']	-> State 1
-  (Rule 37) func : ."avarage"  LOOKAHEAD['(']	-> State 14
+  (Rule 37) func : ."average"  LOOKAHEAD['(']	-> State 14
   (Rule 39) args : args delimiter .EXPRESSION  LOOKAHEAD["->", ",", ')']	-> State 63
 
 State 57
@@ -560,7 +560,7 @@ State 73
 
 GOTO TABLE
 ==========
-                       |                   <START>               S_ruleExpr                  _nr_OPT                      _nr                 ruleExpr                 ruleTerm               ruleFactor _at__float_OR_digits_OPT     _at__float_OR_digits         _float_OR_digits               EXPRESSION                     TERM                   FACTOR        _dot_appendix_OPT            _dot_appendix       _dotdot_norest_OPT           _dotdot_norest                     func                     args                delimiter                 appendix                        C                      "#"                     "||"                     "&&"                      "@"                  `float`                 `digits`                      '('                      ')'                      '+'                      '-'                      '*'                      '/'                      '.'                     ".."                 "norest"                    "max"                    "min"                    "sum"                   "mean"                "avarage"                      ","                     "->"                "highest"                 "lowest"                "opening"                "closing"               "quantity"                     "<="                     "=="                     ">="                      "<"                      ">"
+                       |                   <START>               S_ruleExpr                  _nr_OPT                      _nr                 ruleExpr                 ruleTerm               ruleFactor _at__float_OR_digits_OPT     _at__float_OR_digits         _float_OR_digits               EXPRESSION                     TERM                   FACTOR        _dot_appendix_OPT            _dot_appendix       _dotdot_norest_OPT           _dotdot_norest                     func                     args                delimiter                 appendix                        C                      "#"                     "||"                     "&&"                      "@"                  `float`                 `digits`                      '('                      ')'                      '+'                      '-'                      '*'                      '/'                      '.'                     ".."                 "norest"                    "max"                    "min"                    "sum"                   "mean"                "average"                      ","                     "->"                "highest"                 "lowest"                "opening"                "closing"               "quantity"                     "<="                     "=="                     ">="                      "<"                      ">"
 _______________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
                      0 |                         -                       17                        -                        -                        7                       11                        2                        -                        -                        -                        5                        4                       13                        -                        -                        -                        -                        8                        -                        -                        -                        -                        -                        -                        -                        -                       16                       12                        3                        -                        -                        9                        -                        -                        -                        -                        -                       15                       10                        6                        1                       14                        -                        -                        -                        -                        -                        -                        -                        -                        -                        -                        -                        -
                      1 |                         -                        -                        -                        -                        -                        -                        -                        -                        -                        -                        -                        -                        -                        -                        -                        -                        -                        -                        -                        -                        -                        -                        -                        -                        -                        -                        -                        -                        -                        -                        -                        -                        -                        -                        -                        -                        -                        -                        -                        -                        -                        -                        -                        -                        -                        -                        -                        -                        -                        -                        -                        -                        -                        -
@@ -639,7 +639,7 @@ ________________________________________________________________________________
 
 PARSE-ACTION TABLE
 ==================
-                       |                       "#"                     "||"                     "&&"                      "@"                  `float`                 `digits`                      '('                      ')'                      '+'                      '-'                      '*'                      '/'                      '.'                     ".."                 "norest"                    "max"                    "min"                    "sum"                   "mean"                "avarage"                      ","                     "->"                "highest"                 "lowest"                "opening"                "closing"               "quantity"                     "<="                     "=="                     ">="                      "<"                      ">"                    <EOF>
+                       |                       "#"                     "||"                     "&&"                      "@"                  `float`                 `digits`                      '('                      ')'                      '+'                      '-'                      '*'                      '/'                      '.'                     ".."                 "norest"                    "max"                    "min"                    "sum"                   "mean"                "average"                      ","                     "->"                "highest"                 "lowest"                "opening"                "closing"               "quantity"                     "<="                     "=="                     ">="                      "<"                      ">"                    <EOF>
 __________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
                      0 |                         -                        -                        -                        -                       SH                       SH                       SH                        -                        -                       SH                        -                        -                        -                        -                        -                       SH                       SH                       SH                       SH                       SH                        -                        -                        -                        -                        -                        -                        -                        -                        -                        -                        -                        -                        -
                      1 |                         -                        -                        -                        -                        -                        -                       36                        -                        -                        -                        -                        -                        -                        -                        -                        -                        -                        -                        -                        -                        -                        -                        -                        -                        -                        -                        -                        -                        -                        -                        -                        -                        -
