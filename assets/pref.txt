@@ -1,1 +1,1 @@
-{"fomular":"max(250->125) > max(125->6) && max(5->1) > max(250->125)","listSize":"300","minGrade":"50","backByDate":false,"backDays":"0","downLoadThreads":"50","backToDate":"20150522"}
+{"fomular":"max(250->125).opening..norest * 2 < average(5->1).highest @2 && (3<4 || sum(250->1).quantity > 10000000000)","listSize":"300","minGrade":"50","backByDate":false,"backDays":"0","downLoadThreads":"50","backToDate":"20150522"}
