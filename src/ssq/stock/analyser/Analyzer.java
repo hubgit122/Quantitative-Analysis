@@ -47,9 +47,8 @@ public abstract class Analyzer
 
         for (Pair<Integer, String> pair : Stock.stockList)
         {
-            final Stock stock = Stock.loadStock(pair.getKey());
-            
-            if (stock.getNumberString().matches(filter))
+            final int index = pair.getKey();
+            if (Stock.pad(index).matches(filter))
             {
                 taskList.add(new Task(i++)
                 {
@@ -58,13 +57,14 @@ public abstract class Analyzer
                     {
                         try
                         {
-                            scan(stock);
+                            scan(index);
                         }
                         catch (IOException e)
                         {
                             e.printStackTrace();
                         }
                     }
+                    
                 });
             }
         }
@@ -75,7 +75,12 @@ public abstract class Analyzer
         GUI.statusText("扫描结束");
         LogUtils.logString("扫描结束", "进度信息", false);
     }
-
+    
+    private void scan(Integer key) throws IOException
+    {
+        scan(Stock.loadStock(key));
+    }
+    
     /**
      * 要有多线程安全
      *

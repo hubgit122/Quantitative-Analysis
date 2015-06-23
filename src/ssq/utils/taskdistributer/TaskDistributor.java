@@ -96,7 +96,7 @@ public class TaskDistributor
     public TaskDistributor(TaskList taskList, int capacity, Class<? extends WorkThread> threadClass)
     {
         this.taskList = taskList;
-        this.threads = new LinkedList<>();
+        this.threads = new LinkedList();
         this.size = taskList.size();
 
         for (int i = 0; i < capacity; i++)
