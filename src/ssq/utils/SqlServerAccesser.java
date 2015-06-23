@@ -33,10 +33,4 @@ public abstract class SqlServerAccesser extends SqlAccesser
         //        this.username = username;
         //        this.pass = pass;
     }
-    
-    @Override
-    protected boolean dbExists()
-    {
-        return true;
-    }
 }

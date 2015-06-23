@@ -22,28 +22,22 @@ public abstract class SqliteAccesser extends SqlAccesser
             e.printStackTrace();
         }
     }
-    
-    String DBPath;
 
+    String DBPath;
+    
     public String getDBPath()
     {
         return DBPath;
     }
-
+    
     public SqliteAccesser(String dbName)
     {
         super(dbName, "jdbc:sqlite:" + //#ifdef Java
                 DirUtils.getDataBaseRoot() + File.separator + dbName + ".db");
-
+        
         DBPath = DirUtils.getDataBaseRoot() + File.separator + dbName + ".db";
     }
-
-    @Override
-    public boolean dbExists()
-    {
-        return new File(getDBPath()).exists();
-    }
-
+    
     @Override
     public void tryCreateDB()
     {
