@@ -260,7 +260,7 @@ public class HTTPUtils
     {
         if (port < 1 || port > 65535)
         {
-            return false;// throw new IllegalArgumentException("Invalid opening port: " + port);
+            return false;// throw new IllegalArgumentException("Invalid port: " + port);
         }
         
         ServerSocket ss = null;

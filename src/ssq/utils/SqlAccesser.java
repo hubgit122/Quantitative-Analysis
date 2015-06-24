@@ -14,26 +14,26 @@ import java.util.Map;
 
 public abstract class SqlAccesser
 {
-    private Connection connection;
-    protected String   url, dbname;
-
+    protected Connection connection;
+    protected String     url, dbname;
+    
     /**
      * 子类必须显式地指出当前数据库的版本.
      *
      * @return 版本号
      */
     abstract public String getVersion();
-
+    
     public SqlAccesser(String dbname, String url)
     {
         this(dbname, url, null, null);
     }
-
+    
     public SqlAccesser(String dbname, String url, String usr, String pass)
     {
         this.url = url;
         this.dbname = dbname;
-
+        
         try
         {
             connection = usr != null && pass != null ? DriverManager.getConnection(getJDBCPath(), usr, pass) : DriverManager.getConnection(getJDBCPath());
@@ -43,34 +43,25 @@ public abstract class SqlAccesser
             e.printStackTrace();
         }
     }
-    
+
     public String getJDBCPath()
     {
         return url;
     }
-    
+
     /**
-     * 若指定DB存在, 按版本号更新DB. 否则, 尝试创建DB, 并写入版本信息. <br>
-     * 尝试创建必须使用的Table, 后面对DB的操作可以认为这些Table存在.<br>
+     * 若指定DB存在, 按版本号更新DB. 否则, 尝试初始化DB, 并写入版本信息. <br>
      * 这个函数不能在本类的构造函数里调用, 可以在子类初始化version字段之后调用.
      */
     public void checkDatabase()
     {
-        tryCreateDB();
+        tryInitializeDB();
         if (updateVersion().compareTo(getVersion()) < 0)
         {
-            updateDatabase();
-        }
-        
-        try
-        {
-            tryCreateTable();
-        }
-        catch (Exception e)
-        {
+            updateDB();
         }
     }
-    
+
     /**
      * 更新版本号
      *
@@ -80,7 +71,7 @@ public abstract class SqlAccesser
     {
         String oldVersion = getLastVersion();
         String newVersion = getVersion();
-
+        
         if (newVersion.compareTo(oldVersion) > 0)
         {
             try
@@ -90,20 +81,20 @@ public abstract class SqlAccesser
             catch (Exception e)
             {
             }
-            
+
             insertVersion(newVersion);
         }
-        
+
         return oldVersion;
     }
-    
+
     public String getLastVersion()
     {
         String oldVersion = "0.0";
         try
         {
             ResultSet results = query("select version from version", null);
-
+            
             if (results.next())
             {
                 String ver = results.getString("version");
@@ -118,10 +109,10 @@ public abstract class SqlAccesser
         {
             System.out.println(e.getLocalizedMessage());
         }
-        
+
         return oldVersion;
     }
-
+    
     public void insertVersion(String newVersion)
     {
         try
@@ -131,7 +122,7 @@ public abstract class SqlAccesser
         catch (Exception e)
         {
         }
-        
+
         try
         {
             update("insert into version values(?)", new Object[] { newVersion });
@@ -140,24 +131,20 @@ public abstract class SqlAccesser
         {
         }
     }
-    
+
     /**
-     * 尝试创建必须使用的Table, 后面对DB的操作可以认为这些Table存在.
+     * 尝试初始化DB, 执行该函数后, DB应该具有了后续操作所需的环境.<br>
+     * 可以包括: 创建DB对应的文件; 尝试创建必须使用的Table, 后面对DB的操作可以认为这些Table存在. <br>
      */
-    abstract protected void tryCreateTable();
-    
-    /**
-     * 尝试创建DB
-     */
-    abstract protected void tryCreateDB();
-    
+    abstract protected void tryInitializeDB();
+
     /**
      * 对数据库有更新要求时, 应该继承此类, 覆盖此方法. 在数据库里判断version域
      *
      * @param path
      */
-    abstract public void updateDatabase();
-    
+    abstract public void updateDB();
+
     /**
      * 获得结果map的列表
      *
@@ -177,7 +164,7 @@ public abstract class SqlAccesser
         {
             return list;
         }
-        
+
         ResultSet resultSet = query(sql, args);
         while (resultSet.next())
         {
@@ -191,7 +178,7 @@ public abstract class SqlAccesser
         resultSet.getStatement().close();
         return list;
     }
-    
+
     /**
      * 执行sql返回statement和resultSet
      *
@@ -218,10 +205,10 @@ public abstract class SqlAccesser
             statement = connection.createStatement();
             resultSet = statement.executeQuery(sql);
         }
-
+        
         return resultSet;
     }
-    
+
     /**
      * 操作数据库(增删改)
      *
@@ -243,7 +230,7 @@ public abstract class SqlAccesser
         }
         return result;
     }
-    
+
     /**
      * 获得预编译语句
      *
@@ -291,5 +278,5 @@ public abstract class SqlAccesser
         }
         return prepared;
     }
-    
+
 }
