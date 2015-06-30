@@ -116,18 +116,16 @@ max(250->125).opening..norest * 2 < average(5->1).highest @2 && (3<4 || sum(250-
 
 #三、关于接口
 
-- java调C
+##1. java调C
 > 可以用命令行简单地实现
 
-- java调matlab
+##2. java调matlab
 > 使用javabuilder库
 
-- SPSS数据源
- - 使用sqlserver2005
- 
+##3. 为SPSS提供数据源
+1. 使用sqlserver2005
 >将sa账户的密码设置为00, 或者修改我的源代码, 都可以使用SqlserverUpdater将历史数据放入sqlserver. 
 >注意: **要先建立一个名为Stock的数据库**
 
- - 使用文本文件
- 
+2. 使用文本文件
 >使用TextOutPuter可以输出所有股票的历史数据
