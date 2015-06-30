@@ -125,7 +125,7 @@ max(250->125).opening..norest * 2 < average(5->1).highest @2 && (3<4 || sum(250-
 ##3. 为SPSS提供数据源
 1. 使用sqlserver2005
 >将sa账户的密码设置为00, 或者修改我的源代码, 都可以使用SqlserverUpdater将历史数据放入sqlserver. 
->注意: **要先建立一个名为Stock的数据库**
+>注意: jdbc是连接到具体的数据库上的, 所以**要先用sqlserver自带的SQL Server Management Studio建立一个名为Stock的数据库**
 
 2. 使用文本文件
 >使用TextOutPuter可以输出所有股票的历史数据
