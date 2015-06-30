@@ -20,8 +20,6 @@ public abstract class SqlServerAccesser extends SqlAccesser
         }
     }
 
-    //    private String username, pass;
-
     public SqlServerAccesser(String dbname)
     {
         this(dbname, "localhost", "1433", null, null);
@@ -30,13 +28,5 @@ public abstract class SqlServerAccesser extends SqlAccesser
     public SqlServerAccesser(String dbname, String url, String port, String username, String pass)
     {
         super(dbname, "jdbc:sqlserver://" + url + ":" + port + ";databaseName=" + dbname, "sa", "00");
-        //        this.username = username;
-        //        this.pass = pass;
-    }
-    
-    @Override
-    protected boolean dbExists()
-    {
-        return true;
     }
 }

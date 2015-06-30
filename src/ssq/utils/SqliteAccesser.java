@@ -39,13 +39,7 @@ public abstract class SqliteAccesser extends SqlAccesser
     }
 
     @Override
-    public boolean dbExists()
-    {
-        return new File(getDBPath()).exists();
-    }
-
-    @Override
-    public void tryCreateDB()
+    public void tryInitializeDB()
     {
         try
         {

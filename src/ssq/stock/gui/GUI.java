@@ -35,18 +35,16 @@ import ssq.utils.FileUtils;
 
 public class GUI extends FrameWithStatus
 {
-    private static final String DEFAULT_FORMULA  = "/*这样的都是注释*/max(250->125).opening/*开盘价*/..norest/*以不复权价格计算(省略这一项将以后复权价格计算)*/ < average(5->1).highest @2 /*权重因子, 不加默认为1, 是本项分值不满时的扣分倍率*/ && (3<4 /*这个没啥用, 只是告诉你只要是不等式就可以出现*/|| sum(250->1).quantity /*成交量*/> 10000000000)";
-
-    private static final String BACK_DAYS        = "backDays";
 
     private static final long   serialVersionUID = 1L;
 
-    private static final String BACK_TO_DATE     = "backToDate";
-    private static final String THREADS          = "downLoadThreads";
-    private static final String BACK_BY_DATE     = "backByDate";
+    private static final String FORMULA          = "fomular";
     private static final String MIN_GRADE        = "minGrade";
     private static final String LIST_SIZE        = "listSize";
-    private static final String FORMULA          = "fomular";
+    private static final String BACK_BY_DATE     = "backByDate";
+    private static final String BACK_TO_DATE     = "backToDate";
+    private static final String BACK_DAYS        = "backDays";
+    private static final String THREADS          = "downLoadThreads";
 
     private static final String READY            = "查看参数是否正确, 并按开始";
     
@@ -81,39 +79,14 @@ public class GUI extends FrameWithStatus
     
     private void fillInDefaultVals()
     {
-        if (!object.containsKey(FORMULA))
-        {
-            object.put(FORMULA, DEFAULT_FORMULA);
-        }
-        
-        if (!object.containsKey(MIN_GRADE))
-        {
-            object.put(MIN_GRADE, "50");
-        }
-        
-        if (!object.containsKey(LIST_SIZE))
-        {
-            object.put(LIST_SIZE, "300");
-        }
-        
-        if (!object.containsKey(BACK_BY_DATE))
-        {
-            object.put(BACK_BY_DATE, false);
-        }
-        
-        if (!object.containsKey(BACK_DAYS))
-        {
-            object.put(BACK_DAYS, "0");
-        }
-        
-        if (!object.containsKey(BACK_TO_DATE))
-        {
-            object.put(BACK_TO_DATE, DateData.format.format(new Date()));
-        }
+        JSONObject tmp = JSONObject.fromObject("{'fomular':'max(250->125).opening..norest * 2 < average(5->1).highest @2 && (3<4 || sum(250->1).quantity > 10000000000)','listSize':'300','minGrade':'50','backByDate':false,'backDays':'0','downLoadThreads':'50','backToDate':'20150522'}");
 
-        if (!object.containsKey(THREADS))
+        for (Object key : tmp.keySet())
         {
-            object.put(THREADS, "50");
+            if (!object.containsKey(key))
+            {
+                object.put(key, tmp.get(key));
+            }
         }
     }
     

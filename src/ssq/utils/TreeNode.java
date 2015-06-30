@@ -8,7 +8,7 @@ public class TreeNode<T> implements Serializable
 {
     protected T              element;
     protected TreeNode       parentNode = null;
-    protected List<TreeNode> childList  = new ArrayList<>();
+    protected List<TreeNode> childList  = new ArrayList();
 
     public TreeNode(T element)
     {

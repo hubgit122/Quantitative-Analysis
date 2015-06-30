@@ -20,7 +20,7 @@ FACTOR ::= func '(' args ')' ('.' appendix)? (".." "norest" )?;
 FACTOR ::= '-' FACTOR;
 FACTOR ::= '(' EXPRESSION ')';
 
-func ::= "max" | "min" | "sum" | "mean" | "avarage";
+func ::= "max" | "min" | "sum" | "mean" | "average";
 
 args ::= EXPRESSION | args delimiter EXPRESSION ;
 delimiter ::= ","|"->";

@@ -44,14 +44,26 @@ public class FileUtils
         }
         return file;
     }
+    
+    public static File assertDirExists(File file)
+    {
+        if (!file.isFile())
+        {
+            if (!file.exists())
+            {
+                file.mkdirs();
+            }
+        }
+        return file;
+    }
 
     public static InputStream downloadFile(String urlString) throws IOException
     {
         URL url = new URL(urlString);
 
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-        conn.setConnectTimeout(5000);
-        conn.setReadTimeout(15000);
+        conn.setConnectTimeout(30000);
+        conn.setReadTimeout(30000);
         InputStream inStream = conn.getInputStream();
         return inStream;
     }

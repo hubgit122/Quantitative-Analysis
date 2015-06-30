@@ -14,14 +14,21 @@ import java.util.Map;
 
 public abstract class SqlAccesser
 {
-    private Connection connection;
-    protected String   url, dbname;
-
+    protected Connection connection;
+    protected String     url, dbname;
+    
+    /**
+     * 子类必须显式地指出当前数据库的版本.
+     *
+     * @return 版本号
+     */
+    abstract public String getVersion();
+    
     public SqlAccesser(String dbname, String url)
     {
         this(dbname, url, null, null);
     }
-
+    
     public SqlAccesser(String dbname, String url, String usr, String pass)
     {
         this.url = url;
@@ -36,34 +43,81 @@ public abstract class SqlAccesser
             e.printStackTrace();
         }
     }
-    
+
     public String getJDBCPath()
     {
         return url;
     }
-    
+
     /**
-     * 如果指定DB不存在, 则用指定的sql语句创建DB和Table
+     * 若指定DB存在, 按版本号更新DB. 否则, 尝试初始化DB, 并写入版本信息. <br>
+     * 这个函数不能在本类的构造函数里调用, 可以在子类初始化version字段之后调用.
      */
-    public void checkDatabase(String version)
+    public void checkDatabase()
     {
-
-        if (version == null)
+        tryInitializeDB();
+        if (updateVersion().compareTo(getVersion()) < 0)
         {
-            version = "1.0";
+            updateDB();
         }
+    }
+
+    /**
+     * 更新版本号
+     *
+     * @return 旧的版本号, 0.0 代表没有版本号
+     */
+    protected String updateVersion()
+    {
+        String oldVersion = getLastVersion();
+        String newVersion = getVersion();
         
-        if (dbExists())
+        if (newVersion.compareTo(oldVersion) > 0)
         {
-            updateDatabase();
+            try
+            {
+                update("drop table version", null);
+            }
+            catch (Exception e)
+            {
+            }
+
+            insertVersion(newVersion);
         }
 
-        tryCreateDB();
+        return oldVersion;
+    }
 
+    public String getLastVersion()
+    {
+        String oldVersion = "0.0";
+        try
+        {
+            ResultSet results = query("select version from version", null);
+            
+            if (results.next())
+            {
+                String ver = results.getString("version");
+                if (ver != null)
+                {
+                    oldVersion = ver;
+                }
+            }
+            results.getStatement().close();
+        }
+        catch (Exception e)
+        {
+            System.out.println(e.getLocalizedMessage());
+        }
+
+        return oldVersion;
+    }
+    
+    public void insertVersion(String newVersion)
+    {
         try
         {
             update("create table version(version varchar(100))", null);
-            update("insert into version values(?)", new Object[] { version });
         }
         catch (Exception e)
         {
@@ -71,26 +125,26 @@ public abstract class SqlAccesser
 
         try
         {
-            tryCreateTable();
+            update("insert into version values(?)", new Object[] { newVersion });
         }
         catch (Exception e)
         {
         }
     }
-    
-    abstract protected void tryCreateTable();
-    
-    abstract protected void tryCreateDB();
-    
-    abstract protected boolean dbExists();
-    
+
+    /**
+     * 尝试初始化DB, 执行该函数后, DB应该具有了后续操作所需的环境.<br>
+     * 可以包括: 创建DB对应的文件; 尝试创建必须使用的Table, 后面对DB的操作可以认为这些Table存在. <br>
+     */
+    abstract protected void tryInitializeDB();
+
     /**
      * 对数据库有更新要求时, 应该继承此类, 覆盖此方法. 在数据库里判断version域
      *
      * @param path
      */
-    abstract public void updateDatabase();
-    
+    abstract public void updateDB();
+
     /**
      * 获得结果map的列表
      *
@@ -103,30 +157,28 @@ public abstract class SqlAccesser
      * @return List
      * @throws Exception
      */
-    public List<Map<String, Object>> query(String sql, Object[] args, String[] keys) throws Exception
+    public List<Map<String, String>> query(String sql, Object[] args, String[] keys) throws Exception
     {
-        List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
+        List<Map<String, String>> list = new ArrayList<Map<String, String>>();
         if (null == keys || keys.length == 0)
         {
             return list;
         }
-        
-        Object[] result = queryWithStatement(sql, args);
-        Statement statement = (Statement) result[0];
-        ResultSet resultSet = (ResultSet) result[1];
+
+        ResultSet resultSet = query(sql, args);
         while (resultSet.next())
         {
-            Map<String, Object> map = new HashMap<String, Object>();
+            Map<String, String> map = new HashMap<String, String>();
             for (int i = 0; i < keys.length; i++)
             {
                 map.put(keys[i], resultSet.getString(keys[i]));
             }
             list.add(map);
         }
-        close(statement, resultSet);
+        resultSet.getStatement().close();
         return list;
     }
-    
+
     /**
      * 执行sql返回statement和resultSet
      *
@@ -153,41 +205,10 @@ public abstract class SqlAccesser
             statement = connection.createStatement();
             resultSet = statement.executeQuery(sql);
         }
+        
         return resultSet;
     }
-    
-    /**
-     * 执行sql返回statement和resultSet
-     *
-     * @param sql
-     *            sql语句
-     * @param args
-     *            参数列表
-     * @return Map
-     * @throws Exception
-     */
-    public Object[] queryWithStatement(String sql, Object[] args) throws Exception
-    {
-        Object[] result = new Object[2];
-        Statement statement = null;
-        ResultSet resultSet = null;
-        if (null != args && args.length > 0)
-        {
-            statement = getPrepared(sql, args);
-            resultSet = ((PreparedStatement) statement).executeQuery();
-        }
-        else
-        {
-            statement = connection.createStatement();
-            resultSet = statement.executeQuery(sql);
-        }
-        
-        result[0] = statement;
-        result[1] = resultSet;
 
-        return result;
-    }
-    
     /**
      * 操作数据库(增删改)
      *
@@ -205,11 +226,11 @@ public abstract class SqlAccesser
         {
             PreparedStatement prepared = getPrepared(sql, args);
             result += prepared.executeUpdate();
-            close(prepared, null);
+            prepared.close();
         }
         return result;
     }
-    
+
     /**
      * 获得预编译语句
      *
@@ -257,27 +278,5 @@ public abstract class SqlAccesser
         }
         return prepared;
     }
-    
-    /**
-     * 关闭连接
-     *
-     * @param statement
-     *            预编译语句
-     * @param resultSet
-     *            结果集
-     * @throws Exception
-     */
-    public void close(Statement statement, ResultSet resultSet) throws Exception
-    {
-        if (null != resultSet)
-        {
-            resultSet.close();
-            resultSet = null;
-        }
-        if (null != statement)
-        {
-            statement.close();
-            statement = null;
-        }
-    }
+
 }

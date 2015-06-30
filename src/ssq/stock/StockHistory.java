@@ -165,7 +165,7 @@ public class StockHistory extends ArrayList<DateData>
                 //            case "mean":
                 //                return mean(args.get(0).intValue() + args.get(2).intValue(), args.get(1).intValue() + args.get(2).intValue(), type, rest);
 
-            case "avarage":
+            case "average":
                 return avarage(args.get(0).intValue() + args.get(2).intValue(), args.get(1).intValue() + args.get(2).intValue(), type, rest);
 
             default:
