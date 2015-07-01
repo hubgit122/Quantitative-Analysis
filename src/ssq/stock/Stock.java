@@ -61,16 +61,6 @@ public class Stock implements Serializable
      */
     transient boolean             isStop           = false;
     
-    /**
-     *
-     * @param sh
-     * @param num
-     * @param firstDay
-     *            参与计算的最早的一个交易日距今的交易日数
-     * @param lastDay
-     *            参与计算的最今的一个交易日距今的交易日数
-     * @throws IOException
-     */
     public Stock(String name, boolean isShangHai, int number)
     {
         this.name = name;
@@ -86,8 +76,6 @@ public class Stock implements Serializable
 
     /**
      * 将不足6位的代码前面补0, 得到规整的股票代码
-     *
-     * @return
      */
     public String getNumberString()
     {
@@ -96,8 +84,6 @@ public class Stock implements Serializable
     
     /**
      * 上交所的加前缀sh, 深交所的加前缀sz
-     *
-     * @return
      */
     public String getCode()
     {
@@ -369,7 +355,6 @@ public class Stock implements Serializable
      * 从磁盘加载上次缓存的代码为index的股票历史数据
      *
      * @param index
-     * @return
      * @throws IOException
      */
     public static Stock loadStock(int index) throws IOException
@@ -414,7 +399,7 @@ public class Stock implements Serializable
 
     /**
      * 下载失败时产生的异常, 用于保存失败的股票的索引
-     * 
+     *
      * @author s
      */
     public static class DownloadException extends Exception
@@ -468,7 +453,6 @@ public class Stock implements Serializable
     /**
      * 向新浪查询最近的交易数据, 用以判断是否停牌
      *
-     * @return
      * @throws IOException
      */
     public String queryLatest() throws IOException
