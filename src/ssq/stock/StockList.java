@@ -87,7 +87,7 @@ public class StockList extends ArrayList<IDNamePair>
     @Override
     public boolean contains(Object o)
     {
-        return (o instanceof Stock && findInsertIndex(((Stock) o).getNumber()) < 0);
+        return (o instanceof Stock && findInsertIndex(((Stock) o).getCode()) < 0);
     }
 
     /**

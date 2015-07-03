@@ -28,18 +28,17 @@ import ssq.utils.StringUtils;
 import ssq.utils.taskdistributer.Task;
 import ssq.utils.taskdistributer.TaskDistributor;
 import ssq.utils.taskdistributer.TaskList;
-import ssq.utils.taskdistributer.WorkThread;
 
 public class Stock implements Serializable
 {
     private static final long     serialVersionUID = 3937169104043760931L;
-    
+
     public static final StockList stockList        = new StockList();
     /**
      * 存放股票历史日线数据的目录
      */
     public static final String    stockListPath    = DirUtils.getXxRoot("assets/stockHistories");
-    
+
     /**
      * 是否是上交所股票(否则是深交所)
      */
@@ -60,69 +59,79 @@ public class Stock implements Serializable
      * 当前是否停牌(退市或暂时停牌)
      */
     transient boolean             isStop           = false;
-    
-    public Stock(String name, boolean isShangHai, int number)
+
+    public Stock(String name, int code)
     {
         this.name = name;
-        this.isShangHai = isShangHai;
-        this.number = number;
+        this.isShangHai = code >= 600000;
+        this.number = code;
         history = new StockHistory(this);
     }
-    
-    public int getNumber()
+
+    public int getCode()
     {
         return number;
     }
-
+    
     /**
      * 将不足6位的代码前面补0, 得到规整的股票代码
      */
-    public String getNumberString()
+    public static String getCodeString(int code)
     {
-        return pad(number);
+        return pad(code);
     }
     
+    public String getCodeString()
+    {
+        return getCodeString(number);
+    }
+
     /**
      * 上交所的加前缀sh, 深交所的加前缀sz
      */
-    public String getCode()
+    public static String getCodeWithAddr(int code)
     {
-        return (isShangHai ? "sh" : "sz") + getNumberString();
+        return (code >= 600000 ? "sh" : "sz") + getCodeString(code);
+    }
+
+    private String getCodeWithAddr()
+    {
+        return getCodeWithAddr(number);
     }
     
     @Override
     public String toString()
     {
-        return getCode() + name;
+        return getCodeWithAddr() + name;
     }
-    
+
     public static String pad(String s)
     {
         StringBuilder sb = new StringBuilder(6);
-        
+
         int end = 6 - s.length();
         for (int j = 0; j < end; j++)
         {
             sb.append('0');
         }
         sb.append(s);
-        
+
         return sb.toString();
     }
-
+    
     public static String pad(int i)
     {
         char[] result = new char[6];
-        
+
         for (int j = 5; j >= 0; j--)
         {
             result[j] = (char) ('0' + i % 10);
             i /= 10;
         }
-        
+
         return new String(result);
     }
-    
+
     //加载Stock类的时候重新加载股票代码->名称列表
     static
     {
@@ -135,7 +144,7 @@ public class Stock implements Serializable
             e.printStackTrace();
         }
     }
-    
+
     /**
      * 股票代码的过滤器
      */
@@ -144,7 +153,7 @@ public class Stock implements Serializable
      * 默认的下载线程数
      */
     public static int          numOfThreads = 25;
-    
+
     /**
      * 采用多线程更新所有股票的历史数据
      *
@@ -160,16 +169,16 @@ public class Stock implements Serializable
         {
             e.printStackTrace();
         }
-        
+
         GUI.statusText("开始更新股票信息");
-        
+
         final int cnt = stockList.size();
-        
+
         final TaskList taskList = new TaskList();
-        final TaskDistributor distributor = new TaskDistributor(taskList, numOfThreads, WorkThread.class)
+        final TaskDistributor distributor = new TaskDistributor(taskList, numOfThreads)
         {
             private LinkedList<Exception> exceptions = new LinkedList<Exception>();
-            
+
             {
                 new Thread(new Runnable()
                 {
@@ -183,7 +192,7 @@ public class Stock implements Serializable
                                 if (!exceptions.isEmpty())
                                 {
                                     int index = Integer.MAX_VALUE;
-                                    
+
                                     synchronized (exceptions)
                                     {
                                         for (Exception exception : exceptions)
@@ -191,9 +200,9 @@ public class Stock implements Serializable
                                             index = Math.min(((DownloadException) exception).index, index);
                                         }
                                     }
-                                    
+
                                     Toolkit.getDefaultToolkit().beep();
-                                    
+
                                     final int ind = index;
                                     try
                                     {
@@ -212,7 +221,7 @@ public class Stock implements Serializable
                                                             abort(task.getTaskId());
                                                         }
                                                     }
-                                                    
+
                                                     GUI.statusText("更新部分完成. 从" + stockList.get(ind) + "开始更新失败. ");
                                                 }
                                             }
@@ -226,14 +235,14 @@ public class Stock implements Serializable
                                     {
                                         e.printStackTrace();
                                     }
-                                    
+
                                     exceptions.clear();
                                 }
                             }
                             catch (NullPointerException e)
                             {
                             }
-
+                            
                             try
                             {
                                 Thread.sleep(1000);
@@ -241,22 +250,22 @@ public class Stock implements Serializable
                             catch (InterruptedException e)
                             {
                             }
-                            
+
                         }
                     }
                 }).start();
             }
-
+            
             @Override
             public void waitTasksDone()
             {
                 super.waitTasksDone();
-
+                
                 exceptions = null;
-
+                
                 GUI.statusText("股票信息更新完毕");
             }
-
+            
             @Override
             public Task getNext(int lastFinished)
             {
@@ -265,7 +274,7 @@ public class Stock implements Serializable
                     GUI.statusText(stockList.get(lastFinished) + "更新完毕, 进度: " + getProgress() + "%");
                 return result;
             }
-            
+
             @Override
             public void informException(Exception e)
             {
@@ -275,7 +284,7 @@ public class Stock implements Serializable
                 }
             }
         };
-        
+
         for (int i = 0; i < cnt; i++)
         {
             taskList.add(new Task(i)
@@ -286,21 +295,21 @@ public class Stock implements Serializable
                     Stock stock;
                     try
                     {
-                        stock = loadStock(stockList.get(getTaskId()).getKey());
+                        stock = loadDayLineHistory(stockList.get(getTaskId()).getKey());
                     }
                     catch (IOException e1)
                     {
                         e1.printStackTrace();
-                        stock = new Stock(stockList.get(getTaskId()).getValue(), stockList.get(getTaskId()).getKey() > 599999, stockList.get(getTaskId()).getKey());
+                        stock = new Stock(stockList.get(getTaskId()).getValue(), stockList.get(getTaskId()).getKey());
                     }
-
+                    
                     while (true)
                     {
                         if (getStatus() == Task.ABROTED)
                         {
                             break;
                         }
-                        
+
                         try
                         {
                             stock.update();
@@ -312,7 +321,7 @@ public class Stock implements Serializable
                             {
                                 break;
                             }
-
+                            
                             distributor.informException(new DownloadException(e, getTaskId()));
                             try
                             {
@@ -326,7 +335,7 @@ public class Stock implements Serializable
                         {
                         }
                     }
-
+                    
                     try
                     {
                         stock.save();
@@ -338,9 +347,9 @@ public class Stock implements Serializable
                 }
             });
         }
-        
+
         distributor.schedule();
-        
+
         new Thread()
         {
             @Override
@@ -350,27 +359,27 @@ public class Stock implements Serializable
             };
         }.start();
     }
-
+    
     /**
      * 从磁盘加载上次缓存的代码为index的股票历史数据
      *
-     * @param index
+     * @param number
      * @throws IOException
      */
-    public static Stock loadStock(int index) throws IOException
+    public static Stock loadDayLineHistory(int code) throws IOException
     {
         Stock result = null;
         ObjectInputStream i = null;
-        
+
         try
         {
-            i = new ObjectInputStream(new BufferedInputStream(new FileInputStream(new File("assets/stockHistories", Stock.pad(index)))));
+            i = new ObjectInputStream(new BufferedInputStream(new FileInputStream(new File("assets/stockHistories", Stock.pad(code)))));
             result = (Stock) i.readObject();
-            result.reconstruct(stockList.getNameOfId(index));
+            result.loadName();
         }
         catch (Exception e)
         {
-            result = new Stock(stockList.getNameOfId(index), index > 400000, index);
+            result = new Stock(stockList.getNameOfId(code), code);
         }
         finally
         {
@@ -382,10 +391,15 @@ public class Stock implements Serializable
             {
             }
         }
-
+        
         return result;
     }
-
+    
+    private void loadName()
+    {
+        reconstruct(stockList.getNameOfId(number));
+    }
+    
     /**
      * 从磁盘读取数据集后, 把股票名称重构出来, 并重构历史数组的反向引用
      *
@@ -396,7 +410,7 @@ public class Stock implements Serializable
         this.name = name;
         this.history.reconstruct(this);
     }
-
+    
     /**
      * 下载失败时产生的异常, 用于保存失败的股票的索引
      *
@@ -406,14 +420,14 @@ public class Stock implements Serializable
     {
         private static final long serialVersionUID = -3732234200535226400L;
         int                       index;
-
+        
         public DownloadException(Exception exception, int index)
         {
             super(exception);
             this.index = index;
         }
     }
-    
+
     /**
      * 保存当前股票的历史
      *
@@ -425,7 +439,7 @@ public class Stock implements Serializable
         o.writeObject(this);
         o.close();
     }
-
+    
     /**
      * 更新历史数据
      *
@@ -436,9 +450,9 @@ public class Stock implements Serializable
         try
         {
             String tmp = queryLatest();
-
+            
             SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
-
+            
             if (tmp.length() < 100 || tmp.endsWith(",-2\";") || tmp.indexOf(',') == -1 || Float.valueOf(tmp.split(",")[1]) == 0f || tmp.contains(format.format(DateData.numberToDate(history.getLastStoredDate()))))
             {
                 return;
@@ -449,15 +463,59 @@ public class Stock implements Serializable
         }
         history.updateData();
     }
-    
+
     /**
-     * 向新浪查询最近的交易数据, 用以判断是否停牌
+     * 向新浪查询最近的交易数据, 用以判断是否停牌 <br>
+     * 数据例:<br>
+     * var hq_str_sh601006="大秦铁路, 27.55, 27.25, 26.91, 27.55, 26.20, 26.91, 26.92, 22114263, 589824680, 4695, 26.91, 57590, 26.90, 14700, 26.89, 14300, 26.88, 15100, 26.87, 3100, 26.92, 8900, 26.93, 14230, 26.94, 25150, 26.95, 15220, 26.96, 2008-01-11, 15:05:32";<br>
+     * 0：”大秦铁路”，股票名字<br>
+     * 1：”27.55″，今日开盘价<br>
+     * 2：”27.25″，昨日收盘价<br>
+     * 3：”26.91″，当前价格<br>
+     * 4：”27.55″，今日最高价<br>
+     * 5：”26.20″，今日最低价<br>
+     * 6：”26.91″，竞买价，即“买一”报价<br>
+     * 7：”26.92″，竞卖价，即“卖一”报价<br>
+     * 8：”22114263″，成交的股票数，由于股票交易以一百股为基本单位，所以在使用时，通常把该值除以一百<br>
+     * 9：”589824680″，成交金额，单位为“元”，为了一目了然，通常以“万元”为成交金额的单位，所以通常把该值除以一万<br>
+     * 10：”4695″，“买一”申请4695股，即47手<br>
+     * 11：”26.91″，“买一”报价<br>
+     * 12：”57590″，“买二” <br>
+     * 13：”26.90″，“买二” <br>
+     * 14：”14700″，“买三” <br>
+     * 15：”26.89″，“买三” <br>
+     * 16：”14300″，“买四” <br>
+     * 17：”26.88″，“买四” <br>
+     * 18：”15100″，“买五” <br>
+     * 19：”26.87″，“买五” <br>
+     * 20：”3100″，“卖一”申报3100股，即31手<br>
+     * 21：”26.92″，“卖一”报价 (22, 23), (24, 25), (26,27), (28, 29)分别为“卖二”至“卖四的情况” 30：”2008-01-11″，日期<br>
+     * 31：”15:05:32″，时间<br>
      *
      * @throws IOException
      */
     public String queryLatest() throws IOException
     {
-        return StringUtils.convertStreamToString(FileUtils.downloadFile("http://hq.sinajs.cn/list=" + getCode()), "gb2312");
+        return StringUtils.convertStreamToString(FileUtils.downloadFile("http://hq.sinajs.cn/list=" + getCodeWithAddr()), "gb2312");
+    }
+
+    /**
+     * @return 最近成交价
+     *
+     * @throws IOException
+     */
+    public Float getCurrentPrice() throws IOException
+    {
+        return Float.valueOf(queryLatest().split(",")[3]);
+    }
+
+    /**
+     * @return 当前买1价
+     * @throws IOException
+     */
+    public Float getCurrentMarketBuy() throws IOException
+    {
+        return Float.valueOf(queryLatest().split(",")[11]);
     }
 
     /**
@@ -466,7 +524,7 @@ public class Stock implements Serializable
     public static void readList()
     {
         String tmp;
-        
+
         try
         {
             try
@@ -520,12 +578,11 @@ public class Stock implements Serializable
                 }
 
             }
-            
+
         }
         catch (Exception e)
         {
             JOptionPane.showMessageDialog(null, "没有网络也没有缓存的股票列表, 程序初始化失败");
         }
     }
-
 }

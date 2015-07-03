@@ -24,6 +24,11 @@ import java.util.Properties;
 
 public class FileUtils
 {
+    public static boolean isValidFileName(String name)
+    {
+        return name.matches("[^\\s\\\\/:\\*\\?\\\"<>\\|](\\x20|[^\\s\\\\/:\\*\\?\\\"<>\\|])*[^\\s\\\\/:\\*\\?\\\"<>\\|\\.]$");
+    }
+
     public static File assertFileExists(File file)
     {
         if (!file.isDirectory())
@@ -31,7 +36,7 @@ public class FileUtils
             if (!file.exists())
             {
                 file.getParentFile().mkdirs();
-
+                
                 try
                 {
                     file.createNewFile();
@@ -44,7 +49,7 @@ public class FileUtils
         }
         return file;
     }
-    
+
     public static File assertDirExists(File file)
     {
         if (!file.isFile())
@@ -56,18 +61,18 @@ public class FileUtils
         }
         return file;
     }
-
+    
     public static InputStream downloadFile(String urlString) throws IOException
     {
         URL url = new URL(urlString);
-
+        
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setConnectTimeout(30000);
         conn.setReadTimeout(30000);
         InputStream inStream = conn.getInputStream();
         return inStream;
     }
-    
+
     /**
      * 使用文件通道的方式复制文件
      *
@@ -82,7 +87,7 @@ public class FileUtils
         FileOutputStream fo = null;
         FileChannel in = null;
         FileChannel out = null;
-        
+
         try
         {
             fi = new FileInputStream(s);
@@ -103,7 +108,7 @@ public class FileUtils
                 in.close();
                 fo.close();
                 out.close();
-                
+
             }
             catch (IOException e)
             {
@@ -111,7 +116,7 @@ public class FileUtils
             }
         }
     }
-    
+
     /**
      * change the content to a string.
      *
@@ -122,7 +127,7 @@ public class FileUtils
     {
         return fileToString(file, null);
     }
-    
+
     public static final String fileToString(File file, String encoding)
     {
         if (file.canRead() && file.isFile())
@@ -142,7 +147,7 @@ public class FileUtils
             return "";
         }
     }
-    
+
     public static boolean fileToStream(File file, OutputStream o)
     {
         if (file.canRead() && file.isFile())
@@ -159,7 +164,7 @@ public class FileUtils
             BufferedInputStream bfin = new BufferedInputStream(fin);
             BufferedOutputStream bfout = new BufferedOutputStream(o);
             byte[] buffer = new byte[4096];
-            
+
             try
             {
                 while ((bfin.read(buffer)) != -1)
@@ -200,7 +205,7 @@ public class FileUtils
             return false;
         }
     }
-    
+
     /**
      * 读取输入流中的文本
      *
@@ -235,7 +240,7 @@ public class FileUtils
         input.close();
         return result.toString();
     }
-    
+
     /**
      * save string to a file(recover).
      *
@@ -257,7 +262,7 @@ public class FileUtils
             return false;
         }
     }
-    
+
     private final static String        SYS_TEMP_FILE = System.getProperty("java.io.tmpdir") + File.separator + "gamest.properties";
     private static Map<String, String> loadedProp    = new HashMap<String, String>();
     static
@@ -274,14 +279,14 @@ public class FileUtils
             }
         }
     }
-    
+
     public static final String getAPropertyFromSysTempFile(String key)
     {
         loadPropertiesFromSysTempFile();
         String val = loadedProp.get(key);
         return null == val ? "" : val;
     }
-    
+
     private static final boolean loadPropertiesFromSysTempFile()
     {
         try
@@ -304,7 +309,7 @@ public class FileUtils
             return false;
         }
     }
-    
+
     public static final int saveAPropertyToSysTempFile(String parameterName, String parameterValue)
     {
         Properties prop = new Properties();
@@ -312,11 +317,11 @@ public class FileUtils
         {
             InputStream fis = new FileInputStream(SYS_TEMP_FILE);
             prop.load(fis);
-            
+
             OutputStream fos = new FileOutputStream(SYS_TEMP_FILE);
             prop.setProperty(parameterName, parameterValue);
             prop.store(fos, "Update '" + parameterName + "' value");
-            
+
             loadedProp.put(parameterName, parameterValue);
             return loadedProp.size();
         }
@@ -326,12 +331,12 @@ public class FileUtils
             return -1;
         }
     }
-    
+
     public static ArrayList<File> getFilteredListOf(File dirFile, boolean filesNotDirs, String filter)//列出目录下所有的文件&文件夹
     {
         File[] files = dirFile.listFiles();
         ArrayList<File> result = new ArrayList<File>();
-        
+
         for (File file : files)
         {
             if ((file.isDirectory() ^ filesNotDirs) && (filter == null || file.getName().matches(filter)))
@@ -339,10 +344,10 @@ public class FileUtils
                 result.add(file);
             }
         }
-        
+
         return result;
     }
-    
+
     public static boolean delAllFile(String dirName)//删除指定文件夹下所有文件
     {
         boolean flag = true;
@@ -350,7 +355,7 @@ public class FileUtils
         if (!dirName.endsWith(File.separator))
         {
             dirName = dirName + File.separator;
-            
+
         }
         File dirFile = new File(dirName);
         //如果dir对应的文件不存在，或者不是一个文件夹则退出
@@ -359,7 +364,7 @@ public class FileUtils
             LogUtils.logWarningString("List失败！找不到目录：" + dirName, FileUtils.class.getName(), false);
             return false;
         }
-        
+
         //列出文件夹下所有的文件,listFiles方法返回目录下的所有文件（包括目录）的File对象
         File[] files = dirFile.listFiles();
         for (int i = 0; i < files.length; i++)
@@ -385,15 +390,15 @@ public class FileUtils
         }
         return flag;
     }
-    
+
     //##else
     public static String openAssetsString(String path)
     {
         return fileToString(new File(DirUtils.getProjectRoot() + "assets/", path));
     }
-    
+
     //##endif
-    
+
     public static String getExt(String path)
     {
         try
@@ -406,12 +411,12 @@ public class FileUtils
             return "";
         }
     }
-    
+
     public static final String fileToString(String string)
     {
         return fileToString(new File(string));
     }
-
+    
     public static Object getNameWithoutExt(String file)
     {
         try

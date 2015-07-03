@@ -56,7 +56,7 @@ public class StockHistory extends ArrayList<DateData>
             {
                 LinkedList<DateData> tmp = new LinkedList<>();
 
-                String url = "http://vip.stock.finance.sina.com.cn/corp/go.php/vMS_FuQuanMarketHistory/stockid/" + stock.getNumberString() + ".phtml?year=" + year + "&jidu=" + season;
+                String url = "http://vip.stock.finance.sina.com.cn/corp/go.php/vMS_FuQuanMarketHistory/stockid/" + stock.getCodeString() + ".phtml?year=" + year + "&jidu=" + season;
                 String content = StringUtils.convertStreamToString(FileUtils.downloadFile(url), "gb2312");
                 
                 int start = content.indexOf("<a target='_blank' href="), end = content.indexOf("<!--历史交易end-->");

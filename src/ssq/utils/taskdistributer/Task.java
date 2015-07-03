@@ -16,6 +16,14 @@ public class Task
         status = READY;
     }
     
+    /**
+     * 多次调用时应该将状态调整为READY
+     */
+    public void resetStatus()
+    {
+        setReady();
+    }
+    
     public void execute()
     {
         System.out.println("当前线程 ID 是：" + Thread.currentThread().getName() + " | 任务 ID 是：" + this.taskId);

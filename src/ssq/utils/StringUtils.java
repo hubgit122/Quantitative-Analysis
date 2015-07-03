@@ -127,7 +127,7 @@ public class StringUtils
         return s.getBytes(format);
     }
     
-    public static String pad(String s, int l, boolean addSpacesToTail)
+    public static String pad(String s, int l, char fillChar, boolean toTail)
     {
         String result;
         
@@ -135,28 +135,25 @@ public class StringUtils
         {
             StringBuffer sb = new StringBuffer(l);
             
-            if (addSpacesToTail)
+            if (toTail)
             {
                 sb.append(s);
             }
+
             for (int i = s.length(); i < l; i++)
             {
-                sb.append(' ');
+                sb.append(fillChar);
             }
             
-            if (!addSpacesToTail)
+            if (!toTail)
             {
                 sb.append(s);
             }
             result = sb.toString();
         }
-        else if (s.length() > l)
-        {
-            result = s.substring(0, l);
-        }
         else
         {
-            result = s;
+            result = s.substring(0, l);
         }
         
         return result;

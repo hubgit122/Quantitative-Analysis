@@ -152,7 +152,7 @@ public class Interpreter extends Analyzer
             }
             synchronized (evals)
             {
-                evals.add(new Pair<Integer, TreeNode<Float>>(s.getNumber(), result));
+                evals.add(new Pair<Integer, TreeNode<Float>>(s.getCode(), result));
             }
         }
         memory.clear();

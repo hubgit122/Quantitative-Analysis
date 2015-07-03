@@ -44,10 +44,10 @@ public class AutoHelpParser extends CmdLineParser
         for (int i = 0; i < options.size(); ++i)
         {
             String def = defaultVals.get(i);
-            def = StringUtils.noContent(def) ? StringUtils.pad("", maxdefvall + 3, true) : "[" + StringUtils.pad(def, maxdefvall, true) + "] ";
-            LogUtils.logWarningString(StringUtils.pad(options.get(i), maxoptionl + 1, true)
+            def = StringUtils.noContent(def) ? StringUtils.pad("", maxdefvall + 3, ' ', true) : "[" + StringUtils.pad(def, maxdefvall, ' ', true) + "] ";
+            LogUtils.logWarningString(StringUtils.pad(options.get(i), maxoptionl + 1, ' ', true)
                     + ": " + def
-                    + StringUtils.pad(helpStrings.get(i), maxhelpl, true)
+                    + StringUtils.pad(helpStrings.get(i), maxhelpl, ' ', true)
                     , null, false);
         }
     }

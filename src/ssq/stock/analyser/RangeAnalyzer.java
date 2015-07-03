@@ -134,7 +134,7 @@ public class RangeAnalyzer extends Analyzer
                         }
 
                         StringBuilder sb = new StringBuilder();
-                        sb.append(s.getNumberString()).append(' ')
+                        sb.append(s.getCodeString()).append(' ')
                         .append(minInQueue.date).append(' ').append(minInQueue.getVal(ValueType.closing)).append(' ').append(String.valueOf(minInQueue.getVal(ValueType.scale)).substring(0, Math.min(4, String.valueOf(minInQueue.getVal(ValueType.scale)).length()))).append(' ').append(minInQueue.getScaledVal(ValueType.closing)).append(' ')
                         .append(maxInQueue.date).append(' ').append(maxInQueue.getVal(ValueType.closing)).append(' ').append(String.valueOf(maxInQueue.getVal(ValueType.scale)).substring(0, Math.min(4, String.valueOf(maxInQueue.getVal(ValueType.scale)).length()))).append(' ').append(maxInQueue.getScaledVal(ValueType.closing)).append(' ')
                         .append(thisDay.date).append(' ').append(thisDay.getVal(ValueType.closing)).append(' ').append(String.valueOf(thisDay.getVal(ValueType.scale)).substring(0, Math.min(4, String.valueOf(thisDay.getVal(ValueType.scale)).length()))).append(' ').append(thisDay.getScaledVal(ValueType.closing)).append(' ')
