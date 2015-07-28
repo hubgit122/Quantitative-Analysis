@@ -1,12 +1,14 @@
-package ssq.utils;
+package ssq.utils.security;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
-public class MD5Utils
+import ssq.utils.HashGenerator;
+
+public class MD5Utils extends HashGenerator
 {
     private static MessageDigest mdInst;
-    
+
     static
     {
         try
@@ -18,10 +20,19 @@ public class MD5Utils
             e.printStackTrace();
         }
     }
-    
-    public static byte[] getMD5Bytes(byte[] btInput)
+
+    public MD5Utils()
     {
-        mdInst.update(btInput);
-        return mdInst.digest();
+        super(16, -1);
+    }
+    
+    @Override
+    public byte[] hash(byte[] m)
+    {
+        synchronized (mdInst)
+        {
+            mdInst.update(m);
+            return mdInst.digest();
+        }
     }
 }

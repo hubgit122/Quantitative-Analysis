@@ -25,40 +25,41 @@ import ssq.utils.message_quene.Receiver;
  */
 abstract public class Simulator implements Serializable, Receiver
 {
-    private static final long        serialVersionUID                = 1L;
-    public static SimpleDateFormat   dateFormat                      = new SimpleDateFormat("yyyy-MM-dd");
-    public static SimpleDateFormat   timeFormat                      = new SimpleDateFormat("HH:mm:ss");
-    public static final String       simDir                          = DirUtils.getXxRoot("assets/simulators/");
+    private static final long            serialVersionUID                = 1L;
+
+    public static final SimpleDateFormat dateFormat                      = new SimpleDateFormat("yyyy-MM-dd");
+    public static final SimpleDateFormat timeFormat                      = new SimpleDateFormat("HH:mm:ss");
+    public static final String           simDir                          = DirUtils.getXxRoot("assets/simulators/");
 
     /**
      * 模拟器名称, 必须是合法文件名
      */
-    String                           name;
+    String                               name;
     /**
      * 模拟器上的账户列表
      */
-    LinkedList<Account>              accounts                        = new LinkedList<>();
+    LinkedList<Account>                  accounts                        = new LinkedList<>();
     
     /**
      * 接收数据请求
      */
-    protected MessageQuene           incomingQueriesQuene;
+    protected MessageQuene               incomingQueriesQuene;
 
     /**
      * 发出更新信息
      */
-    transient protected MessageQuene outgoingMessagesQuene;
+    transient protected MessageQuene     outgoingMessagesQuene;
     
     /**
      * 重新读取交易记录的时间步长, 毫秒<br>
      * 这跟模拟器模拟的倍率是两码事. 因为我们没有实时数据接口, 采用轮询的方式, 所以一定要有时间步长.
      */
-    int                              timeStep                        = 1000;
+    int                                  timeStep                        = 1000;
 
     /**
      * 股票代码到接收器的即时成交信息映射列表. "代码->接收器数组"的数组
      */
-    JSONObject                       codeToReceiverMapForInstantDeal = new JSONObject();
+    JSONObject                           codeToReceiverMapForInstantDeal = new JSONObject();
     
     /**
      * 给新建的模拟器命一个独立的名字. 必须是合法文件名, 否则无法保存
@@ -291,5 +292,17 @@ abstract public class Simulator implements Serializable, Receiver
     protected static float getStampTax(float f)
     {
         return f / 1000f;
+    }
+    
+    public static String getCommunicateJsonString(String type, String msg)
+    {
+        StringBuilder sb = new StringBuilder("{'type':'");
+        sb.append(addEscape(type)).append("','msg':'").append(addEscape(msg)).append("'}");
+        return sb.toString();
+    }
+
+    private static String addEscape(String str)
+    {
+        return str.replace("'", "\'");
     }
 }

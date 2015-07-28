@@ -17,29 +17,29 @@ public class InstantSimulator extends Simulator
     {
         super(name);
     }
-
-    private static final long serialVersionUID = 1L;
     
+    private static final long serialVersionUID = 1L;
+
     @Override
     public Float getCurrentPrice(int code) throws IOException
     {
         return new Stock(null, code).getCurrentPrice();
     }
-    
+
     @Override
     public boolean commit(Account account, int code, float price, boolean buy, int quantity)
     {
         Stock stock = new Stock(null, code);
-
+        
         if (buy && price*quantity<account.available || !buy && !account.canSell(stock, price, quantity, new Date()))
         {
             return false;
         }
-        
+
         account.commissionList.add(new Commission(, price, quantity, buy, new Date()));
         return account;
     }
-    
+
     @Override
     public void save()
     {
@@ -53,6 +53,18 @@ public class InstantSimulator extends Simulator
         {
             e.printStackTrace();
         }
-
+        
+    }
+    
+    @Override
+    public Date getCurrentTime()
+    {
+        return new Date();
+    }
+    
+    @Override
+    public String queryLatest(int code)
+    {
+        // TODO 自动生成的方法存根
     }
 }

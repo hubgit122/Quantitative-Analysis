@@ -29,7 +29,7 @@ public class HistorySimulator extends Simulator
      * 指定股票代码和日期, 缓存该股票当天的交易数据
      */
     static Hashtable<Pair<Integer, String>, LinkedList<Deal>> mem              = new Hashtable<>();
-
+    
     /**
      * 模拟器的当前时间
      */
@@ -38,12 +38,12 @@ public class HistorySimulator extends Simulator
      * 缓存的当前时间的年月日
      */
     int                                                       year, month, date;
-
+    
     public HistorySimulator(String name) throws Exception
     {
         super(name);
     }
-    
+
     /**
      * @return 最近成交价
      *
@@ -53,10 +53,10 @@ public class HistorySimulator extends Simulator
     public Float getCurrentPrice(int code) throws IOException
     {
         LinkedList<Deal> tmp = getData(code);
-
+        
         float currentPrice = 0;
         Date time = simulationNow.getTime();
-
+        
         while (tmp.size() > 0)
         {
             if (tmp.getFirst().getTime().before(time))
@@ -68,10 +68,10 @@ public class HistorySimulator extends Simulator
                 break;
             }
         }
-        
+
         return currentPrice;
     }
-
+    
     /**
      * 从历史数据表里读取数据, 如果没有, 则去网上下载
      *
@@ -91,7 +91,7 @@ public class HistorySimulator extends Simulator
         }
         return tmp;
     }
-    
+
     /**
      * 将下载的交易记录解析成内部格式
      *
@@ -101,7 +101,7 @@ public class HistorySimulator extends Simulator
     private LinkedList<Deal> parseDeals(InputStream in)
     {
         LinkedList<Deal> result = new LinkedList<>();
-
+        
         BufferedReader reader = null;
         try
         {
@@ -110,21 +110,21 @@ public class HistorySimulator extends Simulator
         catch (UnsupportedEncodingException e2)
         {
         }
-        
+
         try
         {
             reader.readLine();
-            
+
             for (String line = reader.readLine(); line != null; line = reader.readLine())
             {
                 String[] tmp = line.split("\t");
-                
+
                 try
                 {
                     Calendar calendar = Calendar.getInstance();
                     calendar.setTime(timeFormat.parse(tmp[0]));
                     calendar.set(year, month, date);
-
+                    
                     result.addFirst(new Deal(calendar.getTime(), Float.parseFloat(tmp[1]), Integer.parseInt(tmp[3]) * 100, Type.OTHERS, -1));
                 }
                 catch (ParseException e)
@@ -136,7 +136,7 @@ public class HistorySimulator extends Simulator
         catch (IOException e1)
         {
         }
-        
+
         try
         {
             reader.close();
@@ -146,7 +146,7 @@ public class HistorySimulator extends Simulator
         }
         return result;
     }
-    
+
     /**
      * 下载交易记录
      *
@@ -158,7 +158,7 @@ public class HistorySimulator extends Simulator
         String date = key.getValue();
         return FileUtils.downloadFile("http://market.finance.sina.com.cn/downxls.php?date=" + date + "&symbol=" + Stock.getCodeWithAddr(code));
     }
-
+    
     /**
      * 让时间继续进行
      *
@@ -169,44 +169,58 @@ public class HistorySimulator extends Simulator
     {
         simulationNow.add(Calendar.DATE, days);
         simulationNow.add(Calendar.SECOND, seconds);
-
+        
         refreshCache();
     }
-    
+
     private void refreshCache()
     {
         year = simulationNow.get(Calendar.YEAR);
         month = simulationNow.get(Calendar.MONTH);
         date = simulationNow.get(Calendar.DATE);
     }
-    
+
     public void setDate(int y, int m, int d)
     {
         year = y;
         month = m;
         date = d;
-        
+
         simulationNow.set(y, m, d);
     }
-    
+
     @Override
     public boolean commit(Account account, int code, float price, boolean buy, int quantity)
     {
         // TODO 自动生成的方法存根
         return false;
     }
-
+    
     @Override
     public void save()
     {
         // TODO 自动生成的方法存根
-        
-    }
 
+    }
+    
     @Override
     protected void onNewTime()
     {
         // TODO 自动生成的方法存根
-        
+
+    }
+    
+    @Override
+    public Date getCurrentTime()
+    {
+        // TODO 自动生成的方法存根
+        return null;
+    }
+    
+    @Override
+    public String queryLatest(int code)
+    {
+        // TODO 自动生成的方法存根
+        return null;
     }
 }

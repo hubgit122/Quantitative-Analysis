@@ -9,7 +9,8 @@ import ssq.stock.Stock;
 import ssq.stock.simulator.Deal.Type;
 
 /**
- * 一个账户. 有买卖委托列表, 持仓列表, 交易记录
+ * 一个账户. 有买卖委托列表, 持仓列表, 交易记录, 账户名和登录密码<br>
+ * 如果是ViP, 还可以提供加密通信服务
  *
  * @author s
  *
