@@ -16,9 +16,8 @@ import ssq.utils.taskdistributer.TaskList;
  */
 public class MessageQuene extends LinkedBlockingQueue<JSONObject>
 {
-    public static final String SOME_RECEIVERS   = "someReceivers";
-    
     private static final long  serialVersionUID = 1L;
+    public static final String SOME_RECEIVERS   = "someReceivers";
     
     String                     name;
     TaskList                   informTasks      = new TaskList();
@@ -66,7 +65,6 @@ public class MessageQuene extends LinkedBlockingQueue<JSONObject>
                                         }
                                     }
                                 }.start();
-                                
                             }
                         }
                         catch (Exception e)
