@@ -9,29 +9,28 @@ import ssq.utils.Pair;
 import ssq.utils.taskdistributer.Task;
 import ssq.utils.taskdistributer.TaskDistributor;
 import ssq.utils.taskdistributer.TaskList;
-import ssq.utils.taskdistributer.WorkThread;
 
 public abstract class Analyzer
 {
     public final String filter;
-
+    
     public Analyzer()
     {
         filter = Stock.filter;
     }
-
+    
     public Analyzer(String filter)
     {
         this.filter = filter;
     }
-
+    
     public void run() throws Exception
     {
         GUI.statusText("开始分析");
         LogUtils.logString("开始分析", "进度信息", false);
-
+        
         TaskList taskList = new TaskList();
-        TaskDistributor distributor = new TaskDistributor(taskList, 10, WorkThread.class)
+        TaskDistributor distributor = new TaskDistributor(taskList, 10)
         {
             @Override
             public Task getNext(int lastFinished)
@@ -42,9 +41,9 @@ public abstract class Analyzer
                 return result;
             }
         };
-
+        
         int i = 0;
-
+        
         for (Pair<Integer, String> pair : Stock.stockList)
         {
             final int index = pair.getKey();
@@ -64,23 +63,23 @@ public abstract class Analyzer
                             e.printStackTrace();
                         }
                     }
-                    
+
                 });
             }
         }
-        
+
         distributor.schedule();
         distributor.waitTasksDone();
-        
+
         GUI.statusText("扫描结束");
         LogUtils.logString("扫描结束", "进度信息", false);
     }
-    
+
     private void scan(Integer key) throws IOException
     {
-        scan(Stock.loadStock(key));
+        scan(Stock.loadDayLineHistory(key));
     }
-    
+
     /**
      * 要有多线程安全
      *

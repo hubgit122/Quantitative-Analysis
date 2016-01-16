@@ -1,8 +1,10 @@
+﻿/assets/stockHistories
 /bin
 /.settings
-/db
-/选股
 /assets/query_history
-/tmp
-pref1*.txt
+/assets/pref1*.txt
 /assets/stockHistories
+/doc
+/tmp
+/选股
+/db

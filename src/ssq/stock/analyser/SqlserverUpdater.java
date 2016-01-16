@@ -67,7 +67,7 @@ public class SqlserverUpdater extends Analyzer
     @Override
     public void scan(final Stock stock) throws IOException
     {
-        final String tableName = stock.getNumberString() + stock.name;
+        final String tableName = stock.getCodeString() + stock.name;
         int lastDate = -1;
         try
         {

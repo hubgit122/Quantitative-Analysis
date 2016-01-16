@@ -5,17 +5,18 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
+import java.util.Arrays;
 import java.util.List;
 
 public class StringUtils
 {
     private static char[] hexDigits = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' };
-    
+
     public static boolean noContent(String s)
     {
         return s == null || s.trim().length() == 0;
     }
-    
+
     public static String getHex(byte[] data)
     {
         int j = data.length;
@@ -29,32 +30,15 @@ public class StringUtils
         }
         return new String(str);
     }
-
-    public static String join(String d, float[] contents)
+    
+    public static String join(String d, Object[] contents)
     {
         boolean flag = false;
         StringBuilder sb = new StringBuilder();
-
-        for (float o : contents)
+        if (contents == null)
         {
-            if (flag)
-            {
-                sb.append(d);
-            }
-            else
-            {
-                flag = true;
-            }
-
-            sb.append(o);
+            return "";
         }
-        return sb.toString();
-    }
-
-    public static String join(String d, List<?> contents)
-    {
-        boolean flag = false;
-        StringBuilder sb = new StringBuilder();
 
         for (Object o : contents)
         {
@@ -66,13 +50,17 @@ public class StringUtils
             {
                 flag = true;
             }
-
-            sb.append(o.toString());
+            
+            sb.append(o);
         }
-        
         return sb.toString();
     }
     
+    public static String join(String d, List<?> contents)
+    {
+        return join(d, contents.toArray());
+    }
+
     private static int hex2Dec(char c)
     {
         if (c <= '9')
@@ -83,6 +71,11 @@ public class StringUtils
         {
             return c - 'a' + 10;
         }
+    }
+
+    public static Object join(String d, float[] vals)
+    {
+        return join(d, Arrays.asList(vals));
     }
     
     /**
@@ -97,16 +90,16 @@ public class StringUtils
             s = "0" + s;
         }
         s = s.toLowerCase();
-        
+
         byte[] result = new byte[s.length() >> 1];
-        
+
         for (int i = 0; i < result.length; i++)
         {
             result[i] = (byte) (hex2Dec(s.charAt(i << 1)) << 4 | hex2Dec(s.charAt((i << 1) + 1)));
         }
         return result;
     }
-    
+
     public static String getPaddedHex(long i, int len)
     {
         char[] str = new char[len];
@@ -117,7 +110,7 @@ public class StringUtils
         }
         return new String(str);
     }
-    
+
     public static byte[] encode(String s, String format) throws UnsupportedEncodingException
     {
         if (format == null)
@@ -126,42 +119,39 @@ public class StringUtils
         }
         return s.getBytes(format);
     }
-    
-    public static String pad(String s, int l, boolean addSpacesToTail)
+
+    public static String pad(String s, int l, char fillChar, boolean toTail)
     {
         String result;
-        
+
         if (s.length() < l)
         {
             StringBuffer sb = new StringBuffer(l);
-            
-            if (addSpacesToTail)
+
+            if (toTail)
             {
                 sb.append(s);
             }
+            
             for (int i = s.length(); i < l; i++)
             {
-                sb.append(' ');
+                sb.append(fillChar);
             }
-            
-            if (!addSpacesToTail)
+
+            if (!toTail)
             {
                 sb.append(s);
             }
             result = sb.toString();
         }
-        else if (s.length() > l)
+        else
         {
             result = s.substring(0, l);
         }
-        else
-        {
-            result = s;
-        }
-        
+
         return result;
     }
-    
+
     public static String decode(byte[] bytes, String format) throws UnsupportedEncodingException
     {
         if (format == null)
@@ -170,7 +160,7 @@ public class StringUtils
         }
         return new String(bytes, format);
     }
-    
+
     public static final String changeFirstCharacterToLowerCase(String upperCaseStr)
     {
         char[] chars = new char[1];
@@ -182,14 +172,14 @@ public class StringUtils
         }
         return upperCaseStr;
     }
-    
+
     public static String convertStreamToString(InputStream is, String encoding) throws IOException
     {
         if (encoding == null)
         {
             encoding = "UTF-8";
         }
-        
+
         if (is != null)
         {
             BufferedReader in = new BufferedReader(new InputStreamReader(is, encoding));
@@ -199,7 +189,7 @@ public class StringUtils
             {
                 buffer.append(line);
             }
-
+            
             try
             {
                 is.close();
