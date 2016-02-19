@@ -43,10 +43,6 @@ public class RangeAnalyzer extends Analyzer
         LinkedList<DateData> valOrder  = new LinkedList<>();
         int                  capacity  = 250;
 
-        public Recoder()
-        {
-        }
-        
         public void insert(DateData data)
         {
             float scaledVal = data.getScaledVal(ValueType.closing);
