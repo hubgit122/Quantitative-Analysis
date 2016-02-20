@@ -1,0 +1,1 @@
+java -cp SelectStock.jar ssq.stock.analyser.IntegralityAnalyzer
