@@ -14,7 +14,6 @@ import ssq.utils.Pair;
 public class FomularOptimizer extends Analyzer
 {
     private String    fomular;
-    private RuleLevel rules;
     private LinkedList<Pair<Integer, Integer>> preferedList = new LinkedList<>(), notPreferedList = new LinkedList<>();
     
     public FomularOptimizer(String fomular)
@@ -79,7 +78,7 @@ public class FomularOptimizer extends Analyzer
     @Override
     public void run() throws Exception
     {
-        rules = Interpreter.parser.getRoot(fomular);
+        Interpreter.parser.getRoot(fomular);
         
         super.run();
     }

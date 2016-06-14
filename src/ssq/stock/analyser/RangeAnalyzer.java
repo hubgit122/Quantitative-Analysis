@@ -154,7 +154,6 @@ public class RangeAnalyzer extends Analyzer
                     }
                 }
             }
-            
         }
         catch (Exception e)
         {
