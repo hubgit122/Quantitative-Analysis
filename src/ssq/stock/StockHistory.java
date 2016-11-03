@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import ssq.stock.interpreter.ReflectTreeBuilder.ValueType;
+import ssq.stock.analyser.ReflectTreeBuilder.ValueType;
 import ssq.utils.FileUtils;
 import ssq.utils.StringUtils;
 
@@ -56,7 +56,9 @@ public class StockHistory extends ArrayList<DateData>
             for (int season = lastStoredDate == -1 ? 1 : (nextDateToStore.getMonth() + 3) / 3; season <= (year == lastDownloadableDate.getYear() + 1900 ? (lastDownloadableDate.getMonth() + 3) / 3 : 4); season++)
             {
                 LinkedList<DateData> tmp = new LinkedList<>();
-                
+
+                //http://finance.cib.com.cn/stock/melon_cutting.jsp?symbol=000001CNSESZ
+                //http://finance.cib.com.cn/stock/melon_cutting.jsp?symbol=600001CNSESH
                 String url = "http://vip.stock.finance.sina.com.cn/corp/go.php/vMS_FuQuanMarketHistory/stockid/" + stock.getCodeString() + ".phtml?year=" + year + "&jidu=" + season;
                 String content = StringUtils.convertStreamToString(FileUtils.downloadFile(url), "gb2312");
                 

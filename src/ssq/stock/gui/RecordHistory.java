@@ -3,7 +3,7 @@ package ssq.stock.gui;
 import java.io.Serializable;
 import java.util.LinkedList;
 
-import ssq.stock.interpreter.ReflectTreeBuilder.RuleLevel;
+import ssq.stock.analyser.ReflectTreeBuilder.RuleLevel;
 import ssq.utils.Pair;
 import ssq.utils.TreeNode;
 

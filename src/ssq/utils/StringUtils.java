@@ -5,8 +5,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import com.sun.xml.internal.ws.policy.privateutil.PolicyUtils.Collections;
 
 public class StringUtils
 {
@@ -73,11 +76,6 @@ public class StringUtils
         }
     }
 
-    public static Object join(String d, float[] vals)
-    {
-        return join(d, Arrays.asList(vals));
-    }
-    
     /**
      *
      * @param s

@@ -9,8 +9,8 @@ import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeModel;
 
 import ssq.stock.Stock;
-import ssq.stock.interpreter.ReflectTreeBuilder.CompositeRule;
-import ssq.stock.interpreter.ReflectTreeBuilder.RuleLevel;
+import ssq.stock.analyser.ReflectTreeBuilder.CompositeRule;
+import ssq.stock.analyser.ReflectTreeBuilder.RuleLevel;
 import ssq.utils.Pair;
 import ssq.utils.TreeNode;
 

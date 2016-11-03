@@ -35,5 +35,7 @@
 	<classpathentry kind="lib" path="libs/orsonpdf-1.6-eval.jar"/>
 	<classpathentry kind="lib" path="libs/servlet.jar"/>
 	<classpathentry kind="lib" path="libs/swtgraphics2d.jar"/>
+	<classpathentry kind="lib" path="/flowchart-`platform`/libs/poi-3.14-20160307.jar"/>
+	<classpathentry kind="lib" path="/flowchart-`platform`/libs/poi-ooxml-3.14-20160307.jar"/>
 	<classpathentry kind="output" path="bin/classes"/>
 </classpath>

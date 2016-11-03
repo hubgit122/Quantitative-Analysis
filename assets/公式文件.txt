@@ -1,0 +1,8 @@
+﻿创30日新高
+max(30,2).highest < max(1,1)
+
+当天有向上缺口
+max(2,2).highest < max(1,1).lowest
+
+当天有涨停板
+max(1,1).highest == max(1,1).lowest @ 20 && max(1,1) - max(2,2) > max(2,2) * 0.1 

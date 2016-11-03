@@ -23,6 +23,7 @@ import java.util.regex.Pattern;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 
+import ssq.stock.analyser.ReflectTreeBuilder.ValueType;
 import ssq.stock.gui.GUI;
 import ssq.utils.DirUtils;
 import ssq.utils.FileUtils;
@@ -87,7 +88,18 @@ public class Stock implements Serializable
     {
         return getCodeString(number);
     }
-
+//    
+//    public boolean isLimitedRise(int index){
+//    	if (index<=0)
+//		{
+//			return false;
+//		}
+//    	
+//    	DateData thisDay = history.get(index) , lastDay = history.get(index-1);
+//    	
+//    	lastDay.getVal(ValueType.closing)
+//    }
+    
     /**
      * 上交所的加前缀sh, 深交所的加前缀sz
      */

@@ -5,7 +5,7 @@ import java.io.FileWriter;
 
 import ssq.stock.DateData;
 import ssq.stock.Stock;
-import ssq.stock.interpreter.ReflectTreeBuilder.ValueType;
+import ssq.stock.analyser.ReflectTreeBuilder.ValueType;
 
 public class GapAfterLimitUp extends Analyzer
 {
@@ -42,8 +42,15 @@ public class GapAfterLimitUp extends Analyzer
 			for (int i = getNextStar(s, 0); i > 0 && i < s.history.size() - 1; i = getNextStar(s, i))
 			{
 				DateData thisDay = s.history.get(i), latterDay = s.history.get(i + 1);
+				double highestRise = (latterDay.getScaledVal(ValueType.highest) / thisDay.getScaledVal(ValueType.closing) - 1) * 100;
+				double closingRise = (latterDay.getScaledVal(ValueType.closing) / thisDay.getScaledVal(ValueType.closing) - 1) * 100;
+					
+				if (highestRise>11)
+				{
+					System.err.println();
+				}
 				
-				writer.write(s.getCodeString() + "," + thisDay.date + "," + (latterDay.getScaledVal(ValueType.highest) / thisDay.getScaledVal(ValueType.closing) - 1) * 100 + "," + (latterDay.getScaledVal(ValueType.closing) / thisDay.getScaledVal(ValueType.closing) - 1) * 100 + "\n");
+				writer.write(s.getCodeString() + "," + thisDay.date + "," + highestRise + "," + closingRise + "\n");
 			}
 		}
 		catch (Exception e)

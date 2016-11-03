@@ -7,8 +7,8 @@ import java.io.IOException;
 import java.util.LinkedList;
 
 import ssq.stock.Stock;
+import ssq.stock.analyser.ReflectTreeBuilder.RuleLevel;
 import ssq.stock.interpreter.Interpreter;
-import ssq.stock.interpreter.ReflectTreeBuilder.RuleLevel;
 import ssq.utils.Pair;
 
 public class FomularOptimizer extends Analyzer

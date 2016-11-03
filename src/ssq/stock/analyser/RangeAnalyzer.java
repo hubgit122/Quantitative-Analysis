@@ -8,7 +8,7 @@ import java.util.ListIterator;
 
 import ssq.stock.DateData;
 import ssq.stock.Stock;
-import ssq.stock.interpreter.ReflectTreeBuilder.ValueType;
+import ssq.stock.analyser.ReflectTreeBuilder.ValueType;
 
 public class RangeAnalyzer extends Analyzer
 {
