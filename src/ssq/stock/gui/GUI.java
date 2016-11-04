@@ -7,6 +7,8 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.TextField;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.MouseAdapter;
@@ -24,10 +26,13 @@ import java.util.Date;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
+import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JTextField;
+import javax.swing.SwingConstants;
 
 import net.sf.json.JSONObject;
 import ssq.stock.DateData;
@@ -270,17 +275,18 @@ public class GUI extends FrameWithStatus {
       new Thread(new Runnable() {
         @Override
         public void run() {
+          GUI gui = GUI.getInstance();
           try {
-            new Interpreter(Integer.valueOf(GUI.getInstance().textFields[1].getText()),
-                Float.valueOf(GUI.getInstance().textFields[2].getText()),
-                Integer.valueOf(GUI.getInstance().textFields[3].getText()), GUI.getInstance().textFields[0].getText())
-                    .run();
+            new Interpreter(Integer.valueOf(gui.textFields[1].getText()),
+                Float.valueOf(gui.textFields[2].getText()),
+                Integer.valueOf(gui.textFields[3].getText()), gui.textFields[0].getText())
+            .run();
           } catch (Exception e1) {
             e1.printStackTrace();
             statusText("执行出现异常" + e1.getLocalizedMessage());
           }
 
-          GUI.getInstance().enableButtons();
+          gui.enableButtons();
           QueryHistoryFrame.showQueryHistory();
         }
       }).start();
@@ -296,22 +302,91 @@ public class GUI extends FrameWithStatus {
     @Override
     public void mouseClicked(MouseEvent e) {
       GUI.getInstance().disableButtons();
+      
+      QueryJTable queryJTable = new QueryJTable();
+      queryJTable.setVisible(true);
+      
+      int startDate = queryJTable.getStartDate(), endDate = queryJTable.getEndDate();
 
       new Thread(new Runnable() {
         @Override
         public void run() {
-          try {
-            new FormulaTester(GUI.getInstance().textFields[0].getText(), 90).run();
-          } catch (Exception e2) {
-            e2.printStackTrace();
-            statusText("执行出现异常" + e2.getLocalizedMessage());
-          }
+          if(startDate > 0 && endDate >0)
+            try {
+              new FormulaTester(GUI.getInstance().textFields[0].getText(), 90, startDate, endDate).run();
+            } catch (Exception e2) {
+              e2.printStackTrace();
+              statusText("执行出现异常" + e2.getLocalizedMessage());
+            }
+
           GUI.getInstance().enableButtons();
         }
       }).start();
     }
   } };
+  
+  static class QueryJTable extends JDialog implements ActionListener {
+    private static final long serialVersionUID = 1L;
+    
+    JTextField                fromText;
+    JTextField                toText;
 
+    int startDate = -1, endDate = -1;
+
+    public QueryJTable() {
+      super(getInstance(), true);
+
+      setTitle("输入起止时间 格式: 20100101");
+      setBounds(400, 400, 600, 200);
+      
+      JPanel content = new JPanel();
+      JLabel from = new JLabel("从");
+      fromText = new JTextField("", 5);
+      fromText.setHorizontalAlignment(SwingConstants.RIGHT);
+      fromText.setText("20160101");
+      JLabel to = new JLabel("至");
+      toText = new JTextField("", 5);
+      toText.setHorizontalAlignment(SwingConstants.RIGHT);
+      toText.setText("20161231");
+      
+      content.add(from);
+      content.add(fromText);
+      content.add(to);
+      content.add(toText);
+      
+      JButton ok = new JButton("确定");
+      ok.addActionListener(this);
+      JButton cancel = new JButton("返回");
+      cancel.addActionListener(this);
+      content.add(ok);
+      content.add(cancel);
+      add(content);
+
+      pack();
+    }
+    
+    @Override
+    public void actionPerformed(ActionEvent e) {
+      if ("确定".equals(e.getActionCommand())) {
+        try {
+          startDate = Integer.valueOf(fromText.getText());
+          endDate = Integer.valueOf(toText.getText());
+        } catch (Exception e2) {
+        }
+      }
+
+      this.setVisible(false);
+    }
+
+    public int getStartDate() {
+      return startDate;
+    }
+
+    public int getEndDate() {
+      return endDate;
+    }
+  }
+  
   private void disableButtons() {
     for (int i = 0; i < buttons.length; i++) {
       JButton jButton = buttons[i];
