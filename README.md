@@ -53,7 +53,7 @@ Quant-Analysis
 > Before running it, you should have [JDK8](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html) or JRE8 installed on your device. 
 
 ## 5. `sendkey.exe`
-> If you are using the eastmoney client-end software, just open it and double click one of the items listed in the query result. Then you can see the activite window is changed to the eastmoney.exe and the corresponding stock is displayed in it. 
+> If you are using the eastmoney client-end software, just open it and double click one of the items listed in the query result. Then you can see the activate window is changed to the eastmoney.exe and the corresponding stock is displayed in it. 
 > This exe file is to carry out the steps for you. 
 
 # 二、Usage
@@ -78,45 +78,45 @@ Examples can be seen under the `ssq.stock.analyser` package
 > Your main efforts should be paid on how to compose your formula
 - I have already put an example of the formula in this release. 
 
-```scala
+```Scala
 /*All these comments should be removed before you put this formula into the GUI*/
 max(250->125).opening/*The opening price*/..norest/*Without adjusting (Backward adjustment is the default option)*/ 
 /*The above line is a invoking of a function, to denote 
 the maximum of the opening price of the latest 250 day to 125 day, without adjusting the price.*/
 * 2 /*The expressions consist with the four arithmetic operations is supported*/
-/*Every invoking of a funciton yeilds a value, 
+/*Every invoking of a function yields a value, 
 the normal numbers are also values, 
 and their results after the four arithmetic operations are still all values.*/
 < /*Less than operator*/
 average(5->1).highest 
-/*There isn't a "..norest". So it yeilds the average of the highest prices in the latest 5 days*/ 
+/*There isn't a "..norest". So it yields the average of the highest prices in the latest 5 days*/ 
 /*All these above make an inequation. 
 Every inequation is an item for a stock to be graded. 
 Taking the history data of a single stock into the inequation, we will get two values on the two sides. 
-The grade of the stock upon this inequation is equal to the "satisfication level" of the inequation, 
+The grade of the stock upon this inequation is equal to the "satisfaction level" of the inequation, 
 which will define it later. */
-@2 /*The weighting factor, defauting to 1. 
+@2 /*The weighting factor, defaulting to 1. 
 It is the scale factor of the grades failed. */ 
-/*All these above is a composed expressoin. You can build an expression tree by using the 
+/*All these above is a composed expression. You can build an expression tree by using the 
 &&, ||, and ()*/
 && /*And*/
 (
-3<4 /*Nonsense. Just for demonstration of the gramma. */
+3<4 /*Nonsense. Just for demonstration of the syntax. */
 || 
 sum(250->1).quantity /*The sum of the deal quantity of the latest 250 days*/ > 10000000000)
 /*The priority of &&, ||, and () are just as the same as those in C*/
 ```
 
 Then you can put this formula into the GUI to get the result. 
-```scala
+```Scala
 max(250->125).opening..norest * 2 < average(5->1).highest @2 && (3<4 || sum(250->1).quantity > 10000000000)
 ```
-	Note: Just to illustrate the gramma of the formula, use this and all other formula on your own risks. 
+	Note: Just to illustrate the syntax of the formula, use this and all other formula on your own risks. 
 
 > For the experts
-The "satisfication level" of an inequation is just a quotient followed by a saturation operation. 
+The "satisfaction level" of an inequation is just a quotient followed by a saturation operation. 
 
-```scala
+```Scala
 2 == 3 ======> 2/3			
 //just taking the small number as the dividend
 
@@ -124,7 +124,7 @@ The "satisfication level" of an inequation is just a quotient followed by a satu
 //just taking the right hand side as the dividend
 
 2 <= 3 ======> 3/2 ======> 1		
-//the maximum grade is 1
+//the maximum grade is 1, also, the minimum value is 0
 
 3<=2 && 4==5 || 1 == 3  ======> max(2/3 * 4/5, 1/3) ======> 8/15 
 //the composition of the inequations are calculated by multiply and picking the max value
