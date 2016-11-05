@@ -1,3 +1,4 @@
+
 ---
 Quant-Analysis
 
@@ -85,9 +86,9 @@ max(250->125).opening/*The opening price*/..norest/*Without adjusting (Omitting 
 /*Every invoking of a funciton yeilds a value, the normal numbers are also values, and their results after the four arithmetic operations are all values.*/
 < /*Less than operator*/
 average(5->1).highest /*There isn't a "..norest". So it yeilds the average of the highest prices in the latest 5 days*/ 
-/*All these above make an inequation. Every inequation is an item for a stock to be graded. Taking the history data of a single stock into the inequation, we will get two values on the two sides. The grade of the stock upon this inequation is equal to the "satisfication level" of the inquation, which will define it later. */
+/*All these above make an inequation. Every inequation is an item for a stock to be graded. Taking the history data of a single stock into the inequation, we will get two values on the two sides. The grade of the stock upon this inequation is equal to the "satisfication level" of the inequation, which will define it later. */
 @2 /*The weighting factor, defauting to 1. It is the scale factor of the grades failed. */ 
-/*所有前边的这一堆是一个公式复合的基本单元. 公式支持用 &&, ||和() 嵌套地表达*/
+/*All these above is a composed expressoin. You can build an expression tree by using the &&, ||, and ()*/
 && /*And*/
 (
 3<4 /*Nonsense. Just for demonstration of the gramma. */
@@ -97,11 +98,28 @@ sum(250->1).quantity /*The sum of the deal quantity of the latest 250 days*/ > 1
 ```
 
 Then you can put this formula into the GUI to get the result. 
-```
+```scala
 max(250->125).opening..norest * 2 < average(5->1).highest @2 && (3<4 || sum(250->1).quantity > 10000000000)
 ```
 	Note: Just to illustrate the gramma of the formula, use this and all other formula on your own risks. 
 
+> For the experts
+The "satisfication level" of an inequation is just a quotient followed by a saturation operation. 
+
+```scala
+2 == 3 ======> 2/3			
+//just taking the small number as the dividend
+
+3 <= 2 ======> 2/3			
+//just taking the right hand side as the dividend
+
+2 <= 3 ======> 3/2 ======> 1		
+//the maximum grade is 1
+
+3<=2 && 4==5 || 1 == 3  ======> max(2/3 * 4/5, 1/3) ======> 8/15 
+//the composition of the inequations are calculated by multiply and picking the max value
+```
+    
 # 三、About the interfaces
 ## 1. Java and C
 > Can be simply implemented by jni or cmd line
