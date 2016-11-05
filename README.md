@@ -1,128 +1,119 @@
-# quant
-
-标签（空格分隔）： 股票 量化交易 
+---
+Quant-Analysis
 
 ---
 
-[TOC]
 
-# 一、 工程目录结构介绍
-##1. assets目录
-### keys 
-> 加密通信时使用的密钥存储位置. 暂时用不到. 忽略它
+# 一、 Project Structure
+## 1. `assets` Directory
+### `query_history`
+> To save previous query, with the formula used and the results. 
 
-### query_history 
-> 保存以往选股历史
+### `stockHistories`
+> To save the K-line data from 2010
 
-### stockHistories
-> 保存股票从2010年以来的k线数据 `java Serializable自动提供的数据格式`
+### `pref.txt` and `pref-timestamp.txt`
+> The current configuration and previous configurations. 
 
-### web
-> 忽略它
+### `rules.syntax`
+> The syntax file used by the formula parser. 
+> The formula is of a LALR(1) language. 
 
-###CreateStockTable.sql
-> 用于写入SqlServer的sql语句模板
+## 2. `libs` Directory
+> Libraries relied.  
 
-###pref.txt
-> 当前的选股设置
+## 3. `src` Directory
+> The source directory of the project. 
 
-###rules.syntax
-> 公式解释器的语法文件
+- ssq.stock
+>Basic libraries about the updating, storing, and calculating of the stock data
 
-##2. db目录
-> 存放sqlite的数据库
+- ssq.stock.analyser
+> Provide a traverse framework by defining a base class `Analyser` with *evaluate* and *scan* methods to facilitate the procedure of evaluating the grade of the stocks given the query formula and traversing over all the stocks. 
+> There are also a few of example classes inheriting from the base class. Among them, there are utilities for accessing various kinds of databases. 
+> The core executor of the formula, `Interpretor` is also inherited from the base class. 
 
-##3. libs目录
-> 引用的库
+- ssq.stock.gui
+> Provide the essential GUI elements involved in the process of querying stocks, by extending the customed base classes: frame with a status bar, frame with a table in it, frame with a tree in it. 
+> Methods for generating K-line graph is also included, but not fully supported for now. 
 
-##4. model目录
-> trufun uml建模工具的模型文件
-
-##5. src目录
-> 项目的源代码目录
-
-- ssq.stock包 
->与股票的更新, 存储和计算相关的基础类
-
-- ssq.stock.analyser 包 
-> 提供易用的的全遍历抽象基类和几个简单的实现(sqlserver更新器, 历史数据文本输出器等). 由于历史原因, 采用了"分析器"这个名称, 实际上就是一个多线程遍历的基类
-
-- ssq.stock.gui包
-> 为选股而做的图形界面. 也提供了比较易用的基类: 带状态条的窗体, 表格窗体, 树形窗体等
-> 也放入了生成K线图的类, 从网上下载的, 还没有使用过
-
-- ssq.stock.interpreter包
-> 公式解释器及其工具类 使用runcc做的解释器, 动态生成抽象语法树
+- ssq.stock.interpreter
+> The parser of the formula syntax, and the data structure of the AST (abstract syntax tree). 
+> The parser is implemented with the help of [runcc](http://runcc.sourceforge.net/)
 
 - ssq.utils
-> 工具类 不一定都在本项目中用到
+> [Utilities](https://git.oschina.net/ssqston/util.git) implemented by myself
 
 - ssq.utils.taskdistributer
-> 多线程作业调度需要的类
+> The scheduler of muti-thread task
 
-##6. tmp目录
-> 临时输出目录
+## 4. SelectStock.jar
+> Exported executable jar file. 
+> Before running it, you should have [JDK8](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html) or JRE8 installed on your device. 
 
-##7. .classpath & .project
-> eclipse java工程的clsaapath和项目文件
+## 5. sendkey.exe
+> If you are using the eastmoney client-end software, just open it and double click one of the items listed in the query result. Then you can see the activite window is changed to the eastmoney.exe and the corresponding stock is displayed in it. 
+> This exe file is to carry out the steps for you. 
 
-##8. .gitignore
-> git版本库的忽略列表
+# 二、Usage
+> There are 2 standard work flow in this software. 
+ - The GUI based query and loopback system, to select the stocks of your desire and test the effecacy of your query formula through the old data. 
 
-##9. README.md
-> 本文
+![The main window](https://github.com/ssqstone/Quant-Analysis/blob/master/doc/main%20frame.PNG)
 
-##10. SelectStock.jar
-> 导出的可执行文件 安装[JDK8](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html)或者JRE8后可以运行 
-> 使用的库文件与libs里的相同, 将libs改名为SelectStock_lib才可以正确地找到依赖库
+![The entrance to loopback](https://github.com/ssqstone/Quant-Analysis/blob/master/doc/loopback%20entrance.PNG)
+![The result of loopback](https://github.com/ssqstone/Quant-Analysis/blob/master/doc/loopback%20result.PNG)
 
-##11. sendkey.exe
-> 使用东方财富网的windows客户端
-打开东方财富网后, 在本软件的选股结果列表里边双击股票, 将在东方财富网的客户端里自动跳转到对应的股票. 
-这个exe文件便是执行跳转的程序
+![The entrance to debuging](https://github.com/ssqstone/Quant-Analysis/blob/master/doc/debug%20entrance.PNG)
+![The result of debuging](https://github.com/ssqstone/Quant-Analysis/blob/master/doc/debug%20detail.PNG)
 
-#二、公式选股器的使用
-> 主要是公式的编写. 
+![The list of query history](https://github.com/ssqstone/Quant-Analysis/blob/master/doc/history%20list.PNG)
+![The detail of a single query](https://github.com/ssqstone/Quant-Analysis/blob/master/doc/history%20element.PNG)
 
--我已经在发布的程序中提供了一个示例. 
-```
-/*这样的都是注释, 去掉后才能执行*/
-max(250->125).opening/*开盘价*/..norest/*以不复权价格计算(省略这一项将以后复权价格计算)*/ 
-/*上边一行是一个函数计算的结果. 它的意思是, 最近250天到最近125天的以不复权价格计算的开盘价的最大值*/
-* 2 /*支持四则运算构成的表达式*/
-/*每个函数执行都得到一个数值, 普通的数值也是数值, 数值的四则运算仍得到一个数值*/
-< /*小于号*/
-average(5->1).highest /*这里就没有使用"..norest", 用复权价格计算最近5天最高价的平均值*/ 
-/*以上的所有, 构成了一个不等式. 每个不等式就是待评分的最基础项. 把每个股票的历史数据代入这个不等式, 计算左右两个表达式, 都能得到两个数值, 这两个数值对这个不等式的满足程度作为评分标准*/
-@2 /*权重因子, 不加默认为1, 是本不等式分值不满时的扣分倍率*/ 
+
+ - The programming-oriented way, just making use of the stock data provided by the spider and the evaluating and traversing facilities provided by the `ssq.stock.analyser.Analyser` class. 
+Examples can be seen under the `ssq.stock.analyser` package
+
+> Your main efforts should be paid on how to compose your formula
+- I have already put an example of the formula in this release. 
+
+```scala
+/*All these comments should be removed before you put this formula into the GUI*/
+max(250->125).opening/*The opening price*/..norest/*Without adjusting (Omitting this decorator will use the backward adjustment as the default option)*/ 
+/*The above line is a invoking of a function, to denote the maximum of the opening price of the latest 250 day to 125 day, without adjusting the price.*/
+* 2 /*The expressions consist with the four arithmetic operations is supported*/
+/*Every invoking of a funciton yeilds a value, the normal numbers are also values, and their results after the four arithmetic operations are all values.*/
+< /*Less than operator*/
+average(5->1).highest /*There isn't a "..norest". So it yeilds the average of the highest prices in the latest 5 days*/ 
+/*All these above make an inequation. Every inequation is an item for a stock to be graded. Taking the history data of a single stock into the inequation, we will get two values on the two sides. The grade of the stock upon this inequation is equal to the "satisfication level" of the inquation, which will define it later. */
+@2 /*The weighting factor, defauting to 1. It is the scale factor of the grades failed. */ 
 /*所有前边的这一堆是一个公式复合的基本单元. 公式支持用 &&, ||和() 嵌套地表达*/
-&& 
+&& /*And*/
 (
-3<4 /*这个没啥用, 只是用来说明, 只要是不等式就可以出现*/
+3<4 /*Nonsense. Just for demonstration of the gramma. */
 || 
-sum(250->1).quantity /*最近250天的成交量之和*/ > 10000000000)
-/*先算&&再算||, 括号的优先级更高*/
+sum(250->1).quantity /*The sum of the deal quantity of the latest 250 days*/ > 10000000000)
+/*The priority of &&, ||, and () are just as the same as those in C*/
 ```
 
-这个实例需要去掉注释后放入程序中运行
+Then you can put this formula into the GUI to get the result. 
 ```
 max(250->125).opening..norest * 2 < average(5->1).highest @2 && (3<4 || sum(250->1).quantity > 10000000000)
 ```
+	Note: Just to illustrate the gramma of the formula, use this and all other formula on your own risks. 
 
-这只是个示例, 用这个公式选出来什么垃圾股跟我没关系~
+# 三、About the interfaces
+## 1. Java and C
+> Can be simply implemented by jni or cmd line
 
-#三、关于接口
+## 2. Java and matlab
+> With the help of javabuilder
 
-##1. java调C
-> 可以用命令行简单地实现
+## 3. Provide data for SPSS
+1. Through SQL Server
+>By setting the passwd of account *sa* to *00*, or modify the code, you can put all the history data to SQL Server using *SqlserverUpdater*
+	
+	Note: The underlying jdbc should be connected to a certain database. So you should create a database named Stock in the SQL Server Management Studio provided by the SQL Server installation. 
 
-##2. java调matlab
-> 使用javabuilder库
-
-##3. 为SPSS提供数据源
-1. 使用sqlserver2005
->将sa账户的密码设置为00, 或者修改我的源代码, 都可以使用SqlserverUpdater将历史数据放入sqlserver. 
->注意: jdbc是连接到具体的数据库上的, 所以**要先用sqlserver自带的SQL Server Management Studio建立一个名为Stock的数据库**
-
-2. 使用文本文件
->使用TextOutPuter可以输出所有股票的历史数据
+2. By text file
+>All the history data can be exported using `TextOutPuter`
