@@ -30,7 +30,7 @@ Quant-Analysis
 >Basic libraries about the updating, storing, and calculating of the stock data
 
 - ssq.stock.analyser
-> Provide a traverse framework by defining a base class `ssq.stock.analyser.Analyser` with *evaluate* and *scan* methods to facilitate the procedure of evaluating the grade of the stocks given the query formula and traversing over all the stocks. 
+> Provide a enumeration framework by defining a base class `ssq.stock.analyser.Analyser` with *evaluate* and *scan* methods to facilitate the procedure of evaluating the grade of the stocks given the query formula and traversing over all the stocks. 
 > There are also a few of example classes inheriting from the base class. Among them, there are utilities for accessing various kinds of databases. 
 > The core executor of the formula, `ssq.stock.analyser.Interpretor` is also inherited from the base class. 
 
