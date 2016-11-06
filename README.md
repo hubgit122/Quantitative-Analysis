@@ -1,6 +1,6 @@
 
 ---
-# Quant-Analysis
+# [Quant-Analysis](https://github.com/ssqstone/Quant-Analysis.git)
 
 ---
 
@@ -83,16 +83,16 @@ There are 2 standard work flows in this software.
 
 Just make use of the GUI to select the stocks of your desire, to test the effecacy of your query formula through the old data and to debug your formula upon a specific stock on a certain day. 
 
-![The main window](https://github.com/ssqstone/Quant-Analysis/blob/master/doc/main%20frame.PNG)
+![The main window](doc/main%20frame.PNG)
 
-![The entrance to backtesting](https://github.com/ssqstone/Quant-Analysis/blob/master/doc/loopback%20entrance.PNG)
-![The result of backtesting](https://github.com/ssqstone/Quant-Analysis/blob/master/doc/loopback%20result.PNG)
+![The entrance to backtesting](doc/loopback%20entrance.PNG)
+![The result of backtesting](doc/loopback%20result.PNG)
 
-![The entrance to debuging](https://github.com/ssqstone/Quant-Analysis/blob/master/doc/debug%20entrance.PNG)
-![The result of debuging](https://github.com/ssqstone/Quant-Analysis/blob/master/doc/debug%20detail.PNG)
+![The entrance to debuging](doc/debug%20entrance.PNG)
+![The result of debuging](doc/debug%20detail.PNG)
 
-![The list of query history](https://github.com/ssqstone/Quant-Analysis/blob/master/doc/history%20list.PNG)
-![The detail of a single query](https://github.com/ssqstone/Quant-Analysis/blob/master/doc/history%20element.PNG)
+![The list of query history](doc/history%20list.PNG)
+![The detail of a single query](doc/history%20element.PNG)
 
 ### 2. The programming-oriented way
    
