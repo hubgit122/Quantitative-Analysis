@@ -1,0 +1,417 @@
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+   <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+      <meta name="generator" content="Railroad Diagram Generator 1.45.1338"><style type="text/css" xml:space="preserve">
+    ::-moz-selection
+    {
+      color: #FFFCF0;
+      background: #0F0C00;
+    }
+    ::selection
+    {
+      color: #FFFCF0;
+      background: #0F0C00;
+    }      
+    .ebnf a
+    {
+      text-decoration: none;
+    }
+    .ebnf a:hover
+    {
+      color: #050400;
+      text-decoration: underline;
+    }    
+    .signature
+    {
+      color: #806600;
+      font-size: 11px;
+      text-align: right;
+    }
+    body
+    {
+      font: normal 12px Verdana, sans-serif;
+      color: #0F0C00;
+      background: #FFFCF0;
+    }
+    a:link, a:visited
+    {
+      color: #0F0C00;
+    }
+    a:link.signature, a:visited.signature
+    {
+      color: #806600;
+    }
+    a.button, #tabs li a
+    {
+      padding: 0.25em 0.5em;
+      border: 1px solid #806600;
+      background: #F1E8C6;
+      color: #806600;
+      text-decoration: none;
+      font-weight: bold;
+    }
+    a.button:hover, #tabs li a:hover
+    {
+      color: #050400;
+      background: #FFF6D1;
+      border-color: #050400;       
+    }     
+    #tabs
+    {
+      padding: 3px 10px;
+      margin-left: 0;
+      margin-top: 58px;
+      border-bottom: 1px solid #0F0C00;
+    }  
+    #tabs li
+    {
+      list-style: none;
+      margin-left: 5px;
+      display: inline;
+    }
+    #tabs li a
+    {     
+      border-bottom: 1px solid #0F0C00;
+    }
+    #tabs li a.active
+    {
+      color: #0F0C00;
+      background: #FFFCF0;
+      border-color: #0F0C00;
+      border-bottom: 1px solid #FFFCF0;
+      outline: none;
+    }
+    #divs div
+    {
+      display: none;
+      overflow:auto;
+    }
+    #divs div.active
+    {
+      display: block;
+    }
+    #text
+    {
+      border-color: #806600;
+      background: #FFFEFA;
+      color: #050400;
+    }
+    .small
+    {
+      vertical-align: top;
+      text-align: right;
+      font-size: 9px;
+      font-weight: normal;
+      line-height: 120%;
+    }
+    td.small
+    {
+      padding-top: 0px;
+    }
+    .hidden
+    {
+      visibility: hidden;
+    }
+    td:hover .hidden 
+    {
+      visibility: visible;
+    }
+    div.download
+    {
+      display: none;
+      background: #FFFCF0;
+      position: absolute;
+      right: 34px;
+      top: 94px;
+      padding: 10px;
+      border: 1px dotted #0F0C00;
+    }
+    #divs div.ebnf, div.ebnf
+    {
+      display: block;
+      padding-left: 16px;
+      padding-top: 2px; 
+      padding-bottom: 2px; 
+      background: #FFF6D1;
+    }
+    tr.option-line td:first-child
+    {
+      text-align: right
+    }
+    tr.option-text td
+    {
+      padding-bottom: 10px
+    }
+    table.palette
+    {
+      border-top: 1px solid #050400;
+      border-right: 1px solid #050400;
+      margin-bottom: 4px
+    }
+    td.palette
+    {
+      border-bottom: 1px solid #050400;
+      border-left: 1px solid #050400;
+    }
+    a.palette
+    {
+      padding: 2px 3px 2px 10px;
+      text-decoration: none;
+    }
+    .palette
+    {
+      -webkit-user-select: none;
+      -khtml-user-select: none;
+      -moz-user-select: none;
+      -o-user-select: none;
+      -ms-user-select: none;
+    }
+  </style></head>
+   <body>
+      
+      <p style="font-size: 14px; font-weight:bold"><a name="S_ruleExpr">S_ruleExpr:</a></p>
+      <img border="0" src="diagram/S_ruleExpr.png" height="68" width="220" usemap="#S_ruleExpr.map"><map name="S_ruleExpr.map">
+         <area shape="rect" coords="29,1,101,33" href="#ruleExpr" title="ruleExpr"></map>
+      
+      <p>
+         
+         <div class="ebnf"><pre><a href="#S_ruleExpr" title="S_ruleExpr" shape="rect">S_ruleExpr</a>
+         ::= <a href="#ruleExpr" title="ruleExpr" shape="rect">ruleExpr</a> '#'?</pre></div>
+         
+      </p>
+      
+      <p>no references</p><br><p style="font-size: 14px; font-weight:bold"><a name="ruleExpr">ruleExpr:</a></p>
+      <img border="0" src="diagram/ruleExpr.png" height="80" width="172" usemap="#ruleExpr.map"><map name="ruleExpr.map">
+         <area shape="rect" coords="49,45,123,77" href="#ruleTerm" title="ruleTerm"></map>
+      
+      <p>
+         
+         <div class="ebnf"><pre><a href="#ruleExpr" title="ruleExpr" shape="rect">ruleExpr</a> ::= <a href="#ruleTerm" title="ruleTerm" shape="rect">ruleTerm</a> ( '||' <a href="#ruleTerm" title="ruleTerm" shape="rect">ruleTerm</a> )*</pre></div>
+         
+      </p>
+      
+      <p>referenced by:
+         
+         <ul>
+            
+            <li><a href="#S_ruleExpr" title="S_ruleExpr">S_ruleExpr</a></li>
+            
+            <li><a href="#ruleFactor" title="ruleFactor">ruleFactor</a></li>
+            
+         </ul>
+         
+      </p><br><p style="font-size: 14px; font-weight:bold"><a name="ruleTerm">ruleTerm:</a></p>
+      <img border="0" src="diagram/ruleTerm.png" height="80" width="180" usemap="#ruleTerm.map"><map name="ruleTerm.map">
+         <area shape="rect" coords="49,45,131,77" href="#ruleFactor" title="ruleFactor"></map>
+      
+      <p>
+         
+         <div class="ebnf"><pre><a href="#ruleTerm" title="ruleTerm" shape="rect">ruleTerm</a> ::= <a href="#ruleFactor" title="ruleFactor" shape="rect">ruleFactor</a> ( '&amp;&amp;' <a href="#ruleFactor" title="ruleFactor" shape="rect">ruleFactor</a> )*</pre></div>
+         
+      </p>
+      
+      <p>referenced by:
+         
+         <ul>
+            
+            <li><a href="#ruleExpr" title="ruleExpr">ruleExpr</a></li>
+            
+         </ul>
+         
+      </p><br><p style="font-size: 14px; font-weight:bold"><a name="ruleFactor">ruleFactor:</a></p>
+      <img border="0" src="diagram/ruleFactor.png" height="112" width="546" usemap="#ruleFactor.map"><map name="ruleFactor.map">
+         <area shape="rect" coords="49,1,149,33" href="#EXPRESSION" title="EXPRESSION">
+         <area shape="rect" coords="169,1,197,33" href="#C" title="C">
+         <area shape="rect" coords="217,1,317,33" href="#EXPRESSION" title="EXPRESSION">
+         <area shape="rect" coords="409,33,477,65" href="#number" title="number">
+         <area shape="rect" coords="95,77,167,109" href="#ruleExpr" title="ruleExpr"></map>
+      
+      <p>
+         
+         <div class="ebnf"><pre><a href="#ruleFactor" title="ruleFactor" shape="rect">ruleFactor</a>
+         ::= <a href="#EXPRESSION" title="EXPRESSION" shape="rect">EXPRESSION</a> <a href="#C" title="C" shape="rect">C</a> <a href="#EXPRESSION" title="EXPRESSION" shape="rect">EXPRESSION</a> ( '@' <a href="#number" title="number" shape="rect">number</a> )?
+           | '(' <a href="#ruleExpr" title="ruleExpr" shape="rect">ruleExpr</a> ')'</pre></div>
+         
+      </p>
+      
+      <p>referenced by:
+         
+         <ul>
+            
+            <li><a href="#ruleTerm" title="ruleTerm">ruleTerm</a></li>
+            
+         </ul>
+         
+      </p><br><p style="font-size: 14px; font-weight:bold"><a name="EXPRESSION">EXPRESSION:</a></p>
+      <img border="0" src="diagram/EXPRESSION.png" height="124" width="150" usemap="#EXPRESSION.map"><map name="EXPRESSION.map">
+         <area shape="rect" coords="49,89,101,121" href="#TERM" title="TERM"></map>
+      
+      <p>
+         
+         <div class="ebnf"><pre><a href="#EXPRESSION" title="EXPRESSION" shape="rect">EXPRESSION</a>
+         ::= <a href="#TERM" title="TERM" shape="rect">TERM</a> ( ( '+' | '-' ) <a href="#TERM" title="TERM" shape="rect">TERM</a> )*</pre></div>
+         
+      </p>
+      
+      <p>referenced by:
+         
+         <ul>
+            
+            <li><a href="#FACTOR" title="FACTOR">FACTOR</a></li>
+            
+            <li><a href="#ruleFactor" title="ruleFactor">ruleFactor</a></li>
+            
+         </ul>
+         
+      </p><br><p style="font-size: 14px; font-weight:bold"><a name="TERM">TERM:</a></p>
+      <img border="0" src="diagram/TERM.png" height="124" width="166" usemap="#TERM.map"><map name="TERM.map">
+         <area shape="rect" coords="49,89,117,121" href="#FACTOR" title="FACTOR"></map>
+      
+      <p>
+         
+         <div class="ebnf"><pre><a href="#TERM" title="TERM" shape="rect">TERM</a>     ::= <a href="#FACTOR" title="FACTOR" shape="rect">FACTOR</a> ( ( '*' | '/' ) <a href="#FACTOR" title="FACTOR" shape="rect">FACTOR</a> )*</pre></div>
+         
+      </p>
+      
+      <p>referenced by:
+         
+         <ul>
+            
+            <li><a href="#EXPRESSION" title="EXPRESSION">EXPRESSION</a></li>
+            
+         </ul>
+         
+      </p><br><p style="font-size: 14px; font-weight:bold"><a name="FACTOR">FACTOR:</a></p>
+      <img border="0" src="diagram/FACTOR.png" height="234" width="834" usemap="#FACTOR.map"><map name="FACTOR.map">
+         <area shape="rect" coords="135,35,203,67" href="#number" title="number">
+         <area shape="rect" coords="135,123,181,155" href="#func" title="func">
+         <area shape="rect" coords="267,123,367,155" href="#EXPRESSION" title="EXPRESSION">
+         <area shape="rect" coords="267,79,341,111" href="#delimiter" title="delimiter">
+         <area shape="rect" coords="517,155,595,187" href="#appendix" title="appendix">
+         <area shape="rect" coords="181,199,281,231" href="#EXPRESSION" title="EXPRESSION"></map>
+      
+      <p>
+         
+         <div class="ebnf"><pre><a href="#FACTOR" title="FACTOR" shape="rect">FACTOR</a>   ::= '-'* ( <a href="#number" title="number" shape="rect">number</a> | <a href="#func" title="func" shape="rect">func</a> '(' <a href="#EXPRESSION" title="EXPRESSION" shape="rect">EXPRESSION</a> ( <a href="#delimiter" title="delimiter" shape="rect">delimiter</a> <a href="#EXPRESSION" title="EXPRESSION" shape="rect">EXPRESSION</a> )* ')' ( '.' <a href="#appendix" title="appendix" shape="rect">appendix</a> )? ( '..' 'norest' )? | '(' <a href="#EXPRESSION" title="EXPRESSION" shape="rect">EXPRESSION</a> ')' )</pre></div>
+         
+      </p>
+      
+      <p>referenced by:
+         
+         <ul>
+            
+            <li><a href="#TERM" title="TERM">TERM</a></li>
+            
+         </ul>
+         
+      </p><br><p style="font-size: 14px; font-weight:bold"><a name="func">func:</a></p>
+      <img border="0" src="diagram/func.png" height="212" width="172">
+      
+      <p>
+         
+         <div class="ebnf"><pre><a href="#func" title="func" shape="rect">func</a>     ::= 'max'
+           | 'min'
+           | 'sum'
+           | 'mean'
+           | 'average'</pre></div>
+         
+      </p>
+      
+      <p>referenced by:
+         
+         <ul>
+            
+            <li><a href="#FACTOR" title="FACTOR">FACTOR</a></li>
+            
+         </ul>
+         
+      </p><br><p style="font-size: 14px; font-weight:bold"><a name="delimiter">delimiter:</a></p>
+      <img border="0" src="diagram/delimiter.png" height="80" width="134">
+      
+      <p>
+         
+         <div class="ebnf"><pre><a href="#delimiter" title="delimiter" shape="rect">delimiter</a>
+         ::= ','
+           | '-&gt;'</pre></div>
+         
+      </p>
+      
+      <p>referenced by:
+         
+         <ul>
+            
+            <li><a href="#FACTOR" title="FACTOR">FACTOR</a></li>
+            
+         </ul>
+         
+      </p><br><p style="font-size: 14px; font-weight:bold"><a name="appendix">appendix:</a></p>
+      <img border="0" src="diagram/appendix.png" height="212" width="172">
+      
+      <p>
+         
+         <div class="ebnf"><pre><a href="#appendix" title="appendix" shape="rect">appendix</a> ::= 'highest'
+           | 'lowest'
+           | 'opening'
+           | 'closing'
+           | 'quantity'</pre></div>
+         
+      </p>
+      
+      <p>referenced by:
+         
+         <ul>
+            
+            <li><a href="#FACTOR" title="FACTOR">FACTOR</a></li>
+            
+         </ul>
+         
+      </p><br><p style="font-size: 14px; font-weight:bold"><a name="C">C:</a></p>
+      <img border="0" src="diagram/C.png" height="212" width="138">
+      
+      <p>
+         
+         <div class="ebnf"><pre><a href="#C" title="C" shape="rect">C</a>        ::= '&lt;='
+           | '=='
+           | '&gt;='
+           | '&lt;'
+           | '&gt;'</pre></div>
+         
+      </p>
+      
+      <p>referenced by:
+         
+         <ul>
+            
+            <li><a href="#ruleFactor" title="ruleFactor">ruleFactor</a></li>
+            
+         </ul>
+         
+      </p><br><hr>
+      
+      <p>
+         
+         <table class="signature" border="0">
+            
+            <tr>
+               
+               <td style="width: 100%">&nbsp;</td>
+               
+               <td valign="top">
+                  
+                  <nobr class="signature">... generated by <a name="Railroad-Diagram-Generator" class="signature" title="http://www.bottlecaps.de/rr/ui" href="http://www.bottlecaps.de/rr/ui" target="_blank">Railroad Diagram Generator</a></nobr>
+                  
+               </td>
+               
+               <td><a name="Railroad-Diagram-Generator" title="http://www.bottlecaps.de/rr/ui" href="http://www.bottlecaps.de/rr/ui" target="_blank">
+                     <img border="0" src="diagram/rr-1.45.1338.png" height="16" width="16"></a></td>
+               
+            </tr>
+            
+         </table>
+         
+      </p>
+      
+   </body>
+</html>

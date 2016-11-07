@@ -1,6 +1,6 @@
 
 ---
-# [Quant-Analysis](https://github.com/ssqstone/Quant-Analysis.git)
+# [Quantitative-Analysis](https://github.com/ssqstone/Quantitative-Analysis.git)
 
 ---
 
@@ -160,6 +160,8 @@ The "satisfaction level" of an inequation is just a quotient followed by a satur
 //the composition of the inequations are calculated by multiply and picking the max value
 ```
 
+And, there the grammar [railroad graph](doc/index.html) ;-)
+
 ## III. About the interfaces
 ### 1. Java and C
 
@@ -179,3 +181,4 @@ By setting the passwd of account *sa* to *00*, or modify the code, you can put a
 #### 2. By text file
 
 All the history data can be exported using `ssq.stock.analyser.TextOutPuter`
+
