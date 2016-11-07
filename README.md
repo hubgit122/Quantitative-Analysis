@@ -84,14 +84,23 @@ There are 2 standard work flows in this software.
 Just make use of the GUI to select the stocks of your desire, to test the effecacy of your query formula through the old data and to debug your formula upon a specific stock on a certain day. 
 
 <img style="display: block; margin: auto; width: 50%" src="https://github.com/ssqstone/Quant-Analysis/blob/master/doc/main%20frame.PNG?raw=true"><p  style="text-align: center;" > <a href="https://github.com/ssqstone/Quant-Analysis/blob/master/doc/main%20frame.PNG?raw=true"> The main window </a> </p>
-
-<img style="display: block; margin: auto; width: 50%" src="https://github.com/ssqstone/Quant-Analysis/blob/master/doc/loopback%20entrance.PNG?raw=true"><p  style="text-align: center;" > <a href="https://github.com/ssqstone/Quant-Analysis/blob/master/doc/loopback%20entrance.PNG?raw=true"> The entrance to backtesting </a> </p>
+<br/>
+<br/>
+<img style="display: block; margin: auto; width: 30%" src="https://github.com/ssqstone/Quant-Analysis/blob/master/doc/loopback%20entrance.PNG?raw=true"><p  style="text-align: center;" > <a href="https://github.com/ssqstone/Quant-Analysis/blob/master/doc/loopback%20entrance.PNG?raw=true"> The entrance to backtesting </a> </p>
+<br/>
+<br/>
 <img style="display: block; margin: auto; width: 50%" src="https://github.com/ssqstone/Quant-Analysis/blob/master/doc/loopback%20result.PNG?raw=true"><p  style="text-align: center;" > <a href="https://github.com/ssqstone/Quant-Analysis/blob/master/doc/loopback%20result.PNG?raw=true"> The result of backtesting </a> </p>
-
-<img style="display: block; margin: auto; width: 50%" src="https://github.com/ssqstone/Quant-Analysis/blob/master/doc/debug%20entrance.PNG?raw=true"><p  style="text-align: center;" > <a href="https://github.com/ssqstone/Quant-Analysis/blob/master/doc/debug%20entrance.PNG?raw=true"> The entrance to debuging </a> </p>
+<br/>
+<br/>
+<img style="display: block; margin: auto; width: 30%" src="https://github.com/ssqstone/Quant-Analysis/blob/master/doc/debug%20entrance.PNG?raw=true"><p  style="text-align: center;" > <a href="https://github.com/ssqstone/Quant-Analysis/blob/master/doc/debug%20entrance.PNG?raw=true"> The entrance to debuging </a> </p>
+<br/>
+<br/>
 <img style="display: block; margin: auto; width: 50%" src="https://github.com/ssqstone/Quant-Analysis/blob/master/doc/debug%20detail.PNG?raw=true"><p  style="text-align: center;" > <a href="https://github.com/ssqstone/Quant-Analysis/blob/master/doc/debug%20detail.PNG?raw=true"> The result of debuging </a> </p>
-
+<br/>
+<br/>
 <img style="display: block; margin: auto; width: 50%" src="https://github.com/ssqstone/Quant-Analysis/blob/master/doc/history%20list.PNG?raw=true"><p  style="text-align: center;" > <a href="https://github.com/ssqstone/Quant-Analysis/blob/master/doc/history%20list.PNG?raw=true"> The list of query history </a> </p>
+<br/>
+<br/>
 <img style="display: block; margin: auto; width: 50%" src="https://github.com/ssqstone/Quant-Analysis/blob/master/doc/history%20element.PNG?raw=true"><p  style="text-align: center;" > <a href="https://github.com/ssqstone/Quant-Analysis/blob/master/doc/history%20element.PNG?raw=true"> The detail of a single query </a> </p>
 
 ### 2. The programming-oriented way
