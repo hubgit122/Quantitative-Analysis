@@ -142,25 +142,25 @@ max(250->125).opening..norest * 2 < average(5->1).highest @2 && (3<4 || sum(250-
 ```
 <small>*Note: This formula is just meant to illustrate the syntax of the formula system, use this and all other formula on your own risks. *</small>
 
-### 2. ** *For the experts* **
+### 2. *For the experts*
 
 The "satisfaction level" of an inequation is just a quotient followed by a saturation operation. 
 
 ```Scala
-2 == 3 ======2/3			
+2 == 3 =======> 2/3			
 //just taking the small number as the dividend
 
-3 <= 2 ======2/3			
+3 <= 2 =======> 2/3			
 //just taking the right hand side as the dividend
 
-2 <= 3 ======3/2 ======1		
+2 <= 3 =======> 3/2 ======> 1		
 //the maximum grade is 1, also, the minimum value is 0
 
-3<=2 && 4==5 || 1 == 3  ======max(2/3 * 4/5, 1/3) ======8/15 
+3<=2 && 4==5 || 1 == 3  =======> max(2/3 * 4/5, 1/3) =======> 8/15 
 //the composition of the inequations are calculated by multiply and picking the max value
 ```
 
-And, there the grammar [railroad graph](doc/index.html) ;-)
+And, there the grammar [railroad graph](https://ssqstone.github.io/portfolio/Quantitative-Analysis/railroad.html) ;-)
 
 ## III. About the interfaces
 ### 1. Java and C
