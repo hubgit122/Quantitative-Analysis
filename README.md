@@ -23,7 +23,7 @@
 
    The syntax file used by the formula parser. 
    
-   The formula is a LALR(1) language. 
+   The formula is an LALR(1) language. 
 
 ### 2. **libs** Directory
 Libraries required.  
@@ -33,15 +33,15 @@ The source directory of the project.
 
 - ssq.stock
 
-   Basic libraries about the updating, storing, and calculating of the stock data
+   Basic libraries about the updating, storing and calculating of the stock data
 
 - ssq.stock.analyser
 
-   Provide a enumeration framework by defining a base class `ssq.stock.analyser.Analyser` with *evaluate* and *scan* methods to facilitate the procedure of evaluating the grade of the stocks given the query formula and traversing over all the stocks. 
+   Provide an enumeration framework by defining a base class `ssq.stock.analyser.Analyser` with *evaluate* and *scan* methods to facilitate the procedure of evaluating the grade of the stocks given the query formula and traversing over all the stocks. 
    
    There are also a few of example classes inheriting from the base class. Among them, there are utilities for accessing various kinds of databases. 
    
-   The core executor of the formula, `ssq.stock.analyser.Interpretor` is also inherited from the base class. 
+   The core executor of the formula, `ssq.stock.analyser.Interpreter` is also inherited from the base class. 
 
 - ssq.stock.gui
 
@@ -77,7 +77,7 @@ The source directory of the project.
 
 ## II. Usage
 
-There are 2 standard work flows in this software. 
+There are two standard work flows in this software. 
 
 ### 1. The GUI based querying and backtesting system
 
@@ -92,10 +92,10 @@ Just make use of the GUI to select the stocks of your desire, to test the effeca
 <a href="https://github.com/ssqstone/Quant-Analysis/blob/master/doc/loopback%20result.PNG?raw=true"> <img style="display: block; margin: auto; width: 50%" src="https://github.com/ssqstone/Quant-Analysis/blob/master/doc/loopback%20result.PNG?raw=true"/> </a><p  style="text-align: center;" > <a href="https://github.com/ssqstone/Quant-Analysis/blob/master/doc/loopback%20result.PNG?raw=true"> The result of backtesting </a> </p>
 <br/>
 <br/>
-<a href="https://github.com/ssqstone/Quant-Analysis/blob/master/doc/debug%20entrance.PNG?raw=true"> <img style="display: block; margin: auto; width: 30%" src="https://github.com/ssqstone/Quant-Analysis/blob/master/doc/debug%20entrance.PNG?raw=true"/> </a><p  style="text-align: center;" > <a href="https://github.com/ssqstone/Quant-Analysis/blob/master/doc/debug%20entrance.PNG?raw=true"> The entrance to debuging </a> </p>
+<a href="https://github.com/ssqstone/Quant-Analysis/blob/master/doc/debug%20entrance.PNG?raw=true"> <img style="display: block; margin: auto; width: 30%" src="https://github.com/ssqstone/Quant-Analysis/blob/master/doc/debug%20entrance.PNG?raw=true"/> </a><p  style="text-align: center;" > <a href="https://github.com/ssqstone/Quant-Analysis/blob/master/doc/debug%20entrance.PNG?raw=true"> The entrance to debugging </a> </p>
 <br/>
 <br/>
-<a href="https://github.com/ssqstone/Quant-Analysis/blob/master/doc/debug%20detail.PNG?raw=true"> <img style="display: block; margin: auto; width: 50%" src="https://github.com/ssqstone/Quant-Analysis/blob/master/doc/debug%20detail.PNG?raw=true"/> </a><p  style="text-align: center;" > <a href="https://github.com/ssqstone/Quant-Analysis/blob/master/doc/debug%20detail.PNG?raw=true"> The result of debuging </a> </p>
+<a href="https://github.com/ssqstone/Quant-Analysis/blob/master/doc/debug%20detail.PNG?raw=true"> <img style="display: block; margin: auto; width: 50%" src="https://github.com/ssqstone/Quant-Analysis/blob/master/doc/debug%20detail.PNG?raw=true"/> </a><p  style="text-align: center;" > <a href="https://github.com/ssqstone/Quant-Analysis/blob/master/doc/debug%20detail.PNG?raw=true"> The result of debugging </a> </p>
 <br/>
 <br/>
 <a href="https://github.com/ssqstone/Quant-Analysis/blob/master/doc/history%20list.PNG?raw=true"> <img style="display: block; margin: auto; width: 50%" src="https://github.com/ssqstone/Quant-Analysis/blob/master/doc/history%20list.PNG?raw=true"/> </a><p  style="text-align: center;" > <a href="https://github.com/ssqstone/Quant-Analysis/blob/master/doc/history%20list.PNG?raw=true"> The list of query history </a> </p>
@@ -105,9 +105,9 @@ Just make use of the GUI to select the stocks of your desire, to test the effeca
 
 ### 2. The programming-oriented way
    
-Just making use of the stock data provided by the spider and the evaluating and traversing facilities provided by the `ssq.stock.analyser.Analyser` class. 
+Just making use of the stock data provided by the spider and the evaluating and traversing facilities provided by the `ssq.stock.analyzer.Analyzer` class. 
 
-Examples can be seen under the `ssq.stock.analyser` package. 
+Examples can be seen under the `ssq.stock.analyzer` package. 
 
 ## III. Custom Your **Own** Formula
 ### 1. General Ideas
@@ -119,10 +119,10 @@ I have already put an example of the formula in this release.
 ```Scala
 /*All these comments should be removed before you put this formula into the GUI*/
 max(250->125).opening/*The opening price*/..norest/*Without adjusting (Backward adjustment is the default option)*/ 
-/*The above line is a invoking of a function, to denote 
-the maximum of the opening price of the latest 250 day to 125 day, without adjusting the price.*/
-* 2 /*The expressions consist with the four arithmetic operations is supported*/
-/*Every invoking of a function yields a value, 
+/*The above line is an invocation of a function, to denote 
+the maximum of the opening price of the latest 250 days to 125 days, without adjusting the price.*/
+* 2 /*Expressions consist of the four arithmetic operations is supported*/
+/*Every invocation of a function yields a value, 
 the normal numbers are also values, 
 and their results after the four arithmetic operations are still all values.*/
 < /*Less than operator*/
@@ -149,7 +149,7 @@ Then you can put this formula into the GUI to get the result.
 ```Scala
 max(250->125).opening..norest * 2 < average(5->1).highest @2 && (3<4 || sum(250->1).quantity > 10000000000)
 ```
-<small>*Note: This formula is just meant to illustrate the syntax of the formula system, use this and all other formula on your own risks. *</small>
+<small>*Note: This formula is just meant to illustrate the syntax of the formula system, use this and all other formulae on your own risks. *</small>
 
 ### 2. *For the experts*
 
@@ -174,18 +174,18 @@ And, there the grammar [railroad graph](https://ssqstone.github.io/portfolio/Qua
 ## III. About the interfaces
 ### 1. Java and C
 
-Can be simply implemented by jni or cmd line
+Can be simply implemented by JNI or cmd line
 
-### 2. Java and matlab
+### 2. Java and Matlab
 
 With the help of javabuilder
 
 ### 3. Provide data for other purposes
 #### 1. Through SQL Server
 
-By setting the passwd of account *sa* to *00*, or modify the code, you can put all the history data to SQL Server using `ssq.stock.analyser.SqlserverUpdater`
+By setting the password of account *sa* to *00*, or modify the code, you can put all the history data to SQL Server using `ssq.stock.analyser.SqlserverUpdater`
 	
-<small>*Note: The underlying jdbc should be connected to a certain database. So you should create a database named "Stock" in the SQL Server Management Studio provided by the SQL Server installation. *</small>
+<small>*Note: The underlying JDBC should be connected to a certain database. So you should create a database named "Stock" in the SQL Server Management Studio provided by the SQL Server installation. *</small>
 
 #### 2. By text file
 
